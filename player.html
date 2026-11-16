@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الترانيم</title>
+<style>
+  :root { --navy:#141f73; --blue:#3447a0; --orange:#f08030;
+    --bg:#f4f6ff; --card:#fff; --text:#1d2140; --muted:#6b7090; --line:#e3e6f5;
+    --shadow:0 8px 24px -10px rgba(30,40,110,.25); --ease:cubic-bezier(.2,.8,.2,1); }
+  @media (prefers-color-scheme: dark) { :root { --bg:#10121c; --card:#1b1e2e; --text:#eceefb; --muted:#9aa0c4; --line:#2b2f47; --shadow:0 8px 24px -10px rgba(0,0,0,.6); } }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Tajawal","Cairo","Segoe UI",Tahoma,sans-serif; }
+  body.lock { overflow:hidden; }
+  button { font-family:inherit; color:inherit; }
+  svg { display:block; fill:currentColor; }
+  svg.st { fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+
+  header { position:sticky; top:0; z-index:20; background:linear-gradient(135deg,var(--navy),var(--blue)); color:#fff; text-align:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 60px 14px; font-size:22px; font-weight:800; box-shadow:0 6px 20px -8px rgba(20,31,115,.7); }
+  header a { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#fff; text-decoration:none; font-size:30px; line-height:1; padding:4px 10px; border-radius:12px; }
+  .wrap { max-width:680px; margin:0 auto; padding:16px 14px 110px; }
+
+  /* ===== القائمة ===== */
+  #q { width:100%; height:52px; padding:0 16px; font-family:inherit; font-size:17px; color:var(--text); background:var(--card); border:2px solid var(--blue); border-radius:16px; outline:none; box-shadow:var(--shadow); }
+  #q:focus { border-color:var(--orange); }
+  .sec { margin:22px 4px 10px; font-size:18px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .sec::after { content:""; flex:1; height:2px; background:var(--line); border-radius:2px; }
+  .it { display:flex; align-items:center; gap:12px; background:var(--card); border:2px solid var(--line); border-radius:20px; padding:9px 12px 9px 14px; margin-bottom:10px; box-shadow:var(--shadow); cursor:pointer;
+    transition:transform .2s var(--ease), border-color .2s; animation:up .4s var(--ease) both; }
+  @keyframes up { from { opacity:0; transform:translateY(12px); } }
+  @media (hover:hover) { .it:hover { border-color:var(--blue); transform:translateY(-2px); } }
+  .it:active { transform:scale(.98); }
+  .it.cur { border-color:var(--orange); background:linear-gradient(90deg,#f0803018,transparent); }
+  .th { position:relative; flex:0 0 58px; width:58px; height:58px; border-radius:16px; overflow:hidden; background:linear-gradient(145deg,var(--c1),var(--c2)); color:#fff; display:grid; place-items:center; font-size:20px; font-weight:800; box-shadow:0 8px 14px -8px var(--c2); }
+  .th img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .th .eq { position:absolute; inset:0; background:#000a; display:none; align-items:flex-end; justify-content:center; gap:3px; padding-bottom:17px; }
+  .it.pl .th .eq { display:flex; }
+  .eq i { width:4px; height:16px; background:#fff; border-radius:2px; transform-origin:bottom; animation:eq .9s ease-in-out infinite; }
+  .eq i:nth-child(2) { animation-delay:.2s; } .eq i:nth-child(3) { animation-delay:.4s; }
+  @keyframes eq { 0%,100% { transform:scaleY(.25); } 50% { transform:scaleY(1); } }
+  .it .t { flex:1; min-width:0; font-size:17px; font-weight:800; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .it .d { font-size:13px; color:var(--muted); direction:ltr; font-weight:700; }
+  .empty { text-align:center; color:var(--muted); padding:30px 10px; font-size:17px; line-height:1.9; }
+
+  /* ===== شريط التشغيل الصغير ===== */
+  #mini { display:none; position:fixed; z-index:30; left:12px; right:12px; bottom:calc(12px + env(safe-area-inset-bottom,0px)); max-width:656px; margin:0 auto; align-items:center; gap:12px;
+    background:linear-gradient(135deg,#1b2a8f,#3447a0); color:#fff; border-radius:22px; padding:8px 10px 8px 14px; box-shadow:0 16px 32px -10px rgba(20,31,115,.85); cursor:pointer; animation:up .35s var(--ease); }
+  #mini .th { flex-basis:46px; width:46px; height:46px; border-radius:13px; }
+  #mini .mt { flex:1; min-width:0; font-weight:800; font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #mini .mp { width:46px; height:46px; border-radius:50%; border:0; background:#fff; color:var(--navy); display:grid; place-items:center; cursor:pointer; transition:transform .15s; }
+  #mini .mp:active { transform:scale(.88); } #mini .mp svg { width:22px; height:22px; }
+
+  /* ===== المشغّل (شاشة كاملة) ===== */
+  #pv { display:none; position:fixed; inset:0; z-index:60; background:#0d1033; color:#fff; overflow:hidden; --c1:#3447a0; --c2:#141f73; }
+  #pv.on { display:block; animation:sheet .45s var(--ease); }
+  @keyframes sheet { from { opacity:0; transform:translateY(40px) scale(.97); } }
+  #bg { position:absolute; inset:0; background:linear-gradient(160deg,var(--c1),var(--c2)); transition:background .6s; }
+  #bgi { position:absolute; inset:-60px; background-size:cover; background-position:center; filter:blur(38px) saturate(1.4); transform:scale(1.15); opacity:0; transition:opacity .6s; }
+  #bgi.on { opacity:.85; }
+  #bgo { position:absolute; inset:0; background:linear-gradient(180deg,#0000002e,#000000a8); }
+  .pin { position:relative; z-index:1; height:100%; max-width:440px; margin:0 auto; padding:calc(10px + env(safe-area-inset-top,0px)) 22px calc(18px + env(safe-area-inset-bottom,0px));
+    display:flex; flex-direction:column; align-items:center; overflow-y:auto; scrollbar-width:none; }
+  .pin::-webkit-scrollbar { display:none; }
+  .ptop { width:100%; display:flex; align-items:center; justify-content:space-between; flex:0 0 auto; }
+  .ptop span { font-size:14px; font-weight:800; letter-spacing:.3px; opacity:.85; }
+  .ib { width:44px; height:44px; border:0; border-radius:50%; background:#ffffff22; color:#fff; display:grid; place-items:center; cursor:pointer; backdrop-filter:blur(8px); transition:background .2s, transform .15s; }
+  .ib:hover { background:#ffffff40; } .ib:active { transform:scale(.88); } .ib svg { width:24px; height:24px; }
+  .sp { width:44px; }
+
+  .art { position:relative; flex:0 0 auto; width:min(78vw, 46vh, 340px); aspect-ratio:1; margin:auto 0; border-radius:30px; overflow:hidden; background:linear-gradient(145deg,var(--c1),var(--c2));
+    box-shadow:0 34px 60px -22px #000d, 0 0 0 1px #ffffff1c; display:grid; place-items:center; font-size:92px; transform:scale(.88); transition:transform .6s var(--ease), box-shadow .6s; }
+  .art.on { transform:scale(1); box-shadow:0 44px 70px -22px #000f, 0 0 0 1px #ffffff2a; }
+  .art img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .meta { width:100%; text-align:center; flex:0 0 auto; }
+  #ttl { margin:0; font-size:23px; font-weight:800; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  #sub { margin:2px 0 0; font-size:14px; opacity:.72; min-height:21px; font-weight:600; }
+
+  .seek { width:100%; margin-top:16px; direction:ltr; flex:0 0 auto; }
+  input[type=range] { -webkit-appearance:none; appearance:none; display:block; width:100%; height:6px; border-radius:999px; outline:none; cursor:pointer; --p:0%;
+    background:linear-gradient(to right,#fff var(--p),#ffffff35 var(--p)); transition:height .15s; }
+  input[type=range]:hover { height:8px; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:#fff; box-shadow:0 2px 8px #0008; }
+  input[type=range]::-moz-range-thumb { width:16px; height:16px; border:0; border-radius:50%; background:#fff; }
+  .times { display:flex; justify-content:space-between; font-size:12.5px; opacity:.8; margin-top:8px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .ctl { width:100%; display:flex; align-items:center; justify-content:space-between; margin-top:10px; direction:ltr; flex:0 0 auto; }
+  .c { width:54px; height:54px; border:0; border-radius:50%; background:none; color:#fff; display:grid; place-items:center; cursor:pointer; transition:transform .15s, background .2s; }
+  .c:hover { background:#ffffff1c; } .c:active { transform:scale(.86); } .c svg { width:30px; height:30px; }
+  .c.play { width:78px; height:78px; background:#fff; color:#141f73; box-shadow:0 16px 30px -10px #000c; }
+  .c.play:hover { background:#fff; transform:scale(1.05); } .c.play svg { width:36px; height:36px; }
+  .opts { width:100%; display:flex; justify-content:center; gap:10px; margin-top:12px; flex-wrap:wrap; flex:0 0 auto; }
+  .o { height:42px; min-width:46px; padding:0 14px; border:0; border-radius:999px; background:#ffffff1f; color:#fff; font-size:14px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:7px; transition:background .2s, transform .15s, color .2s; backdrop-filter:blur(8px); }
+  .o:active { transform:scale(.92); } .o svg { width:19px; height:19px; } .o.on { background:#fff; color:#141f73; }
+  .vol { width:100%; display:flex; align-items:center; gap:10px; margin-top:14px; direction:ltr; opacity:.9; flex:0 0 auto; }
+  .vol svg { width:20px; height:20px; flex:0 0 20px; }
+  @media (pointer:coarse) { .vol { display:none; } }
+  @media (max-height:700px) { .art { width:min(60vw, 34vh, 280px); font-size:70px; } .c.play { width:68px; height:68px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13a1 1 0 001.5.86l10.5-6.5a1 1 0 000-1.72L9.5 4.64A1 1 0 008 5.5z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.5" height="14" rx="1.4"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.4"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 6.2v11.6a.8.8 0 001.25.66l8.2-5.8a.8.8 0 000-1.32l-8.2-5.8A.8.8 0 006 6.2z"/><rect x="16.5" y="5.5" width="2.5" height="13" rx="1.2"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M18 6.2v11.6a.8.8 0 01-1.25.66l-8.2-5.8a.8.8 0 010-1.32l8.2-5.8A.8.8 0 0118 6.2z"/><rect x="5" y="5.5" width="2.5" height="13" rx="1.2"/></symbol>
+  <symbol id="i-b10" viewBox="0 0 24 24"><path d="M12 4a8 8 0 11-8 8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 .8L7.6 4 12 7.2z"/><text x="12" y="15.4" font-size="7.4" font-weight="800" text-anchor="middle" font-family="Arial,sans-serif">10</text></symbol>
+  <symbol id="i-f10" viewBox="0 0 24 24"><path d="M12 4a8 8 0 10 8 8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 .8L16.4 4 12 7.2z"/><text x="12" y="15.4" font-size="7.4" font-weight="800" text-anchor="middle" font-family="Arial,sans-serif">10</text></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-shuf" viewBox="0 0 24 24"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-rep" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-rep1" viewBox="0 0 24 24"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 014-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 01-4 4H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><text x="12" y="15" font-size="8.5" font-weight="800" text-anchor="middle" font-family="Arial,sans-serif">1</text></symbol>
+  <symbol id="i-ab" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.2"/></symbol>
+  <symbol id="i-vl" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/><path d="M15.5 9a4 4 0 010 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-vh" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z" fill="currentColor"/><path d="M15.5 9a4 4 0 010 6M19 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<header>🎧 الترانيم<a href="index.html" title="رجوع">›</a></header>
+<div class="wrap">
+  <input type="search" id="q" placeholder="🔍 ابحث عن ترنيمة">
+  <div class="sec">📚 الترانيم <span id="cnt" style="font-size:14px;color:var(--muted);font-weight:600"></span></div>
+  <div id="list"></div>
+</div>
+
+<div id="mini"><div class="th" id="mth"></div><div class="mt" id="mt"></div><button class="mp" id="mp" title="تشغيل / إيقاف"><svg><use href="#i-play"/></svg></button></div>
+
+<div id="pv" role="dialog" aria-modal="true" aria-label="المشغّل">
+  <div id="bg"></div><div id="bgi"></div><div id="bgo"></div>
+  <div class="pin">
+    <div class="ptop"><button class="ib" id="back" title="رجوع للقائمة"><svg class="st"><use href="#i-down"/></svg></button><span>الآن يُشغَّل</span><i class="sp"></i></div>
+    <div class="art" id="art"><span id="artfb">🎵</span></div>
+    <div class="meta"><h2 id="ttl">اختار ترنيمة</h2><p id="sub"></p></div>
+    <div class="seek">
+      <input type="range" id="sk" min="0" max="1000" value="0" aria-label="التقدم">
+      <div class="times"><span id="cu">0:00</span><span id="du">0:00</span></div>
+    </div>
+    <div class="ctl">
+      <button class="c" id="prev" title="السابق"><svg><use href="#i-prev"/></svg></button>
+      <button class="c" id="b10" title="رجوع 10 ثواني"><svg><use href="#i-b10"/></svg></button>
+      <button class="c play" id="pp" title="تشغيل"><svg id="ppi"><use href="#i-play"/></svg></button>
+      <button class="c" id="f10" title="تقديم 10 ثواني"><svg><use href="#i-f10"/></svg></button>
+      <button class="c" id="next" title="التالي"><svg><use href="#i-next"/></svg></button>
+    </div>
+    <div class="opts">
+      <button class="o" id="shuf" title="تشغيل عشوائي"><svg><use href="#i-shuf"/></svg><span>عشوائي</span></button>
+      <button class="o" id="rep" title="تكرار"><svg id="repi"><use href="#i-rep"/></svg><span id="rept">تكرار</span></button>
+      <button class="o" id="spd" title="السرعة"><span id="spdt">1×</span></button>
+      <button class="o" id="ab" title="تكرار مقطع"><svg><use href="#i-ab"/></svg><span id="abt">مقطع</span></button>
+    </div>
+    <div class="vol"><svg><use href="#i-vl"/></svg><input type="range" id="vl" min="0" max="100" value="100" aria-label="الصوت"><svg><use href="#i-vh"/></svg></div>
+  </div>
+</div>
+<audio id="au" preload="metadata"></audio>
+
+<script src="hymns-list.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const au = $('au');
+const rand = n => Math.floor(Math.random() * n);
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const norm = s => s.replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').toLowerCase();
+const enc = p => p.split('/').map(encodeURIComponent).join('/');
+const PAL = [['#3447a0','#141f73'],['#8e44ad','#4a235a'],['#c0392b','#7b241c'],['#16a085','#0b5345'],['#d35400','#873600'],['#2471a3','#154360'],['#7d6608','#4d3f05'],['#5d6d7e','#2c3e50']];
+const hash = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+
+const tracks = (typeof HYMNS !== 'undefined' ? HYMNS : []).map(h => ({ file: h.file, name: h.title, cover: h.cover || null, v: h.v || 0, dur: 0 }));
+tracks.forEach(t => { const p = PAL[hash(t.name) % PAL.length]; t.c1 = p[0]; t.c2 = p[1]; });
+let idx = -1, rate = 1, repeat = 0, shuf = false, A = null, B = null, abStep = 0, pvOpen = false;
+const srcOf = t => 'hymns/' + enc(t.file);
+const coverOf = t => t.cover ? 'hymns/' + enc(t.cover) + (t.v ? '?v=' + t.v : '') : null;
+const ico = (el, id) => el.querySelector('use').setAttribute('href', '#' + id);
+
+/* صورة مصغرة (غلاف الترنيمة أو لون بديل) */
+function thumb(t, label) {
+  const d = document.createElement('div'); d.className = 'th'; d.style.setProperty('--c1', t.c1); d.style.setProperty('--c2', t.c2);
+  const sp = document.createElement('span'); sp.textContent = label; d.appendChild(sp);
+  const u = coverOf(t);
+  if (u) { const im = document.createElement('img'); im.alt = ''; im.decoding = 'async'; im.onerror = () => im.remove(); im.src = u; d.appendChild(im); }
+  return d;
+}
+
+/* ===== القائمة ===== */
+function renderList() {
+  const l = $('list'); l.innerHTML = '';
+  const q = norm($('q').value.trim());
+  const shown = tracks.map((t, i) => ({ t, i })).filter(o => !q || norm(o.t.name).includes(q));
+  $('cnt').textContent = tracks.length ? '(' + shown.length + (q ? ' من ' + tracks.length : '') + ')' : '';
+  if (!tracks.length) { l.innerHTML = '<div class="empty">لا توجد ترانيم حالياً.</div>'; return; }
+  if (!shown.length) { l.innerHTML = '<div class="empty">مفيش ترنيمة بالاسم ده.</div>'; return; }
+  shown.forEach(({ t, i }, k) => {
+    const d = document.createElement('div'); d.className = 'it'; d.dataset.i = i; d.style.animationDelay = Math.min(k, 10) * 30 + 'ms';
+    const th = thumb(t, i + 1); const eq = document.createElement('div'); eq.className = 'eq'; eq.innerHTML = '<i></i><i></i><i></i>'; th.appendChild(eq);
+    const tt = document.createElement('div'); tt.className = 't'; tt.textContent = t.name;
+    const dd = document.createElement('div'); dd.className = 'd'; dd.textContent = t.dur ? fmt(t.dur) : '';
+    d.append(th, tt, dd);
+    d.onclick = () => { if (i !== idx) select(i, true); openPlayer(); };
+    l.appendChild(d);
+  });
+  markList();
+}
+function markList() {
+  document.querySelectorAll('#list .it').forEach(el => {
+    const i = +el.dataset.i; el.classList.toggle('cur', i === idx); el.classList.toggle('pl', i === idx && !au.paused);
+    const dd = el.querySelector('.d'); if (tracks[i].dur) dd.textContent = fmt(tracks[i].dur);
+  });
+}
+$('q').oninput = renderList;
+
+/* ===== واجهة المشغّل ===== */
+function setInfo() {
+  const t = tracks[idx];
+  $('ttl').textContent = t ? t.name : 'اختار ترنيمة';
+  $('sub').textContent = t ? 'ترنيمة ' + (idx + 1) + ' من ' + tracks.length : '';
+  $('du').textContent = t && t.dur ? fmt(t.dur) : '0:00'; $('cu').textContent = '0:00'; setP(0);
+  if (!t) return;
+  const pv = $('pv'); pv.style.setProperty('--c1', t.c1); pv.style.setProperty('--c2', t.c2);
+  const art = $('art'); art.querySelectorAll('img').forEach(x => x.remove());
+  const bgi = $('bgi'), u = coverOf(t);
+  bgi.classList.remove('on'); $('artfb').style.display = '';
+  if (u) {
+    const im = document.createElement('img'); im.alt = '';
+    im.onload = () => { $('artfb').style.display = 'none'; bgi.style.backgroundImage = 'url("' + u + '")'; bgi.classList.add('on'); };
+    im.onerror = () => im.remove(); im.src = u; art.appendChild(im);
+  }
+  if ('mediaSession' in navigator) {
+    const md = { title: t.name, artist: 'ترانيم' };
+    if (u) { try { md.artwork = [{ src: new URL(u, location.href).href, sizes: '512x512' }]; } catch (e) {} }
+    navigator.mediaSession.metadata = new MediaMetadata(md);
+  }
+}
+function setP(p) { $('sk').value = p * 1000; $('sk').style.setProperty('--p', (p * 100) + '%'); }
+function syncPlay() {
+  const playing = !au.paused;
+  ico($('ppi'), playing ? 'i-pause' : 'i-play'); $('pp').title = playing ? 'إيقاف مؤقت' : 'تشغيل';
+  $('art').classList.toggle('on', playing); markList(); updMini();
+}
+function updMini() {
+  const m = $('mini'), on = idx >= 0 && !pvOpen; m.style.display = on ? 'flex' : 'none';
+  if (idx < 0) return;
+  const t = tracks[idx]; $('mt').textContent = t.name; ico($('mp'), au.paused ? 'i-play' : 'i-pause');
+  const nt = thumb(t, '🎵'); nt.id = 'mth'; $('mth').replaceWith(nt);
+}
+function openPlayer() {
+  if (pvOpen) return; pvOpen = true; $('pv').classList.add('on'); document.body.classList.add('lock'); updMini();
+  try { history.pushState({ p: 1 }, ''); } catch (e) {}
+}
+function closePlayer(fromPop) {
+  if (!pvOpen) return; pvOpen = false; $('pv').classList.remove('on'); document.body.classList.remove('lock'); updMini();
+  if (!fromPop) { try { history.back(); } catch (e) {} }
+}
+$('back').onclick = () => closePlayer(false);
+$('mini').onclick = openPlayer;
+$('mp').onclick = e => { e.stopPropagation(); togglePlay(); };
+window.addEventListener('popstate', () => { if (pvOpen) closePlayer(true); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && pvOpen) closePlayer(false);
+  else if (pvOpen && e.code === 'Space') { e.preventDefault(); togglePlay(); }
+  else if (pvOpen && e.key === 'ArrowRight') $('f10').click();
+  else if (pvOpen && e.key === 'ArrowLeft') $('b10').click();
+});
+
+/* ===== التشغيل ===== */
+function select(i, play) {
+  if (i < 0 || i >= tracks.length) return;
+  idx = i; A = B = null; abStep = 0; abUI();
+  au.src = srcOf(tracks[i]); au.defaultPlaybackRate = rate; au.playbackRate = rate;
+  setInfo(); markList(); updMini();
+  if (play) { const pr = au.play(); if (pr && pr.catch) pr.catch(() => {}); }
+}
+function togglePlay() { if (idx === -1 && tracks.length) select(0, true); else if (au.paused) au.play().catch(() => {}); else au.pause(); }
+function nextIdx(auto) {
+  const n = tracks.length; if (!n) return -1;
+  if (shuf && n > 1) { let j; do { j = rand(n); } while (j === idx); return j; }
+  if (idx + 1 < n) return idx + 1;
+  return (repeat === 1 || !auto) ? 0 : -1;
+}
+$('pp').onclick = togglePlay;
+$('next').onclick = () => { const j = nextIdx(false); if (j >= 0) select(j, true); };
+$('prev').onclick = () => { if (au.currentTime > 3) au.currentTime = 0; else select((idx - 1 + tracks.length) % tracks.length, true); };
+$('b10').onclick = () => au.currentTime = Math.max(0, au.currentTime - 10);
+$('f10').onclick = () => au.currentTime = Math.min(au.duration || 0, au.currentTime + 10);
+
+au.onplay = syncPlay; au.onpause = syncPlay;
+au.onloadedmetadata = () => {
+  au.playbackRate = rate;
+  if (isFinite(au.duration) && tracks[idx]) { tracks[idx].dur = au.duration; $('du').textContent = fmt(au.duration); markList(); }
+};
+au.onerror = () => { if (idx >= 0) $('sub').textContent = '⚠️ تعذر تشغيل الملف، جرّب ترنيمة تانية'; };
+au.ontimeupdate = () => {
+  if (B !== null && A !== null && au.currentTime >= B) au.currentTime = A;
+  if (au.duration) setP(au.currentTime / au.duration); $('cu').textContent = fmt(au.currentTime);
+};
+au.onended = () => { if (repeat === 2) { au.currentTime = 0; au.play(); return; } const j = nextIdx(true); if (j >= 0) select(j, true); else { au.currentTime = 0; syncPlay(); } };
+$('sk').oninput = e => { if (au.duration) au.currentTime = e.target.value / 1000 * au.duration; setP(e.target.value / 1000); };
+$('vl').oninput = e => { au.volume = e.target.value / 100; e.target.style.setProperty('--p', e.target.value + '%'); };
+$('vl').style.setProperty('--p', '100%');
+
+/* ===== خيارات ===== */
+$('shuf').onclick = () => { shuf = !shuf; $('shuf').classList.toggle('on', shuf); };
+$('rep').onclick = () => {
+  repeat = (repeat + 1) % 3; ico($('repi'), repeat === 2 ? 'i-rep1' : 'i-rep');
+  $('rept').textContent = ['تكرار', 'تكرار الكل', 'تكرار ترنيمة'][repeat]; $('rep').classList.toggle('on', repeat > 0);
+};
+$('spd').onclick = () => { const S = [.75, 1, 1.25, 1.5]; rate = S[(S.indexOf(rate) + 1) % S.length]; au.playbackRate = rate; au.defaultPlaybackRate = rate; $('spdt').textContent = rate + '×'; $('spd').classList.toggle('on', rate !== 1); };
+function abUI() {
+  $('ab').classList.toggle('on', abStep > 0);
+  $('abt').textContent = abStep === 0 ? 'مقطع' : abStep === 1 ? 'من ' + fmt(A) + ' ← النهاية؟' : fmt(A) + ' – ' + fmt(B);
+}
+$('ab').onclick = () => {
+  if (idx === -1) return;
+  if (abStep === 0) { A = au.currentTime; B = null; abStep = 1; }
+  else if (abStep === 1) { if (au.currentTime > A + 1) { B = au.currentTime; abStep = 2; au.currentTime = A; } }
+  else { A = B = null; abStep = 0; }
+  abUI();
+};
+
+if ('mediaSession' in navigator) {
+  const m = navigator.mediaSession;
+  m.setActionHandler('play', () => au.play()); m.setActionHandler('pause', () => au.pause());
+  m.setActionHandler('previoustrack', () => $('prev').click()); m.setActionHandler('nexttrack', () => $('next').click());
+}
+renderList();
+</script>
+</body>
+</html>

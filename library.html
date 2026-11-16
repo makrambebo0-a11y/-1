@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>المكتبة</title>
+<style>
+  :root { --navy:#141f73; --blue:#3447a0; --orange:#f08030;
+    --bg:#f4f6ff; --card:#fff; --text:#1d2140; --muted:#6b7090; --line:#e3e6f5;
+    --shadow:0 8px 24px -10px rgba(30,40,110,.25); --ease:cubic-bezier(.2,.8,.2,1); }
+  @media (prefers-color-scheme: dark) { :root { --bg:#10121c; --card:#1b1e2e; --text:#eceefb; --muted:#9aa0c4; --line:#2b2f47; --shadow:0 8px 24px -10px rgba(0,0,0,.6); } }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Tajawal","Cairo","Segoe UI",Tahoma,sans-serif; }
+  button, input { font-family:inherit; color:inherit; }
+  header { position:sticky; top:0; z-index:20; background:linear-gradient(135deg,var(--navy),var(--blue)); color:#fff; text-align:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 60px 14px; font-size:22px; font-weight:800; box-shadow:0 6px 20px -8px rgba(20,31,115,.7); }
+  header a { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#fff; text-decoration:none; font-size:30px; line-height:1; padding:4px 10px; border-radius:12px; }
+  .wrap { max-width:860px; margin:0 auto; padding:16px 14px 50px; }
+  .view { animation:viewIn .4s var(--ease); }
+  @keyframes viewIn { from { opacity:0; transform:translateY(12px); } }
+
+  #q { width:100%; height:52px; padding:0 16px; font-size:17px; background:var(--card); border:2px solid var(--blue); border-radius:16px; outline:none; box-shadow:var(--shadow); }
+  #q:focus { border-color:var(--orange); }
+  .chips { display:flex; gap:8px; overflow-x:auto; padding:14px 2px 6px; scrollbar-width:none; }
+  .chips::-webkit-scrollbar { display:none; }
+  .chip { flex:0 0 auto; padding:9px 16px; border-radius:999px; border:2px solid var(--line); background:var(--card); font-size:15px; font-weight:800; cursor:pointer; white-space:nowrap; transition:all .2s var(--ease); }
+  .chip.on { background:linear-gradient(135deg,var(--orange),#ff9f55); color:#fff; border-color:transparent; box-shadow:0 8px 16px -8px var(--orange); transform:translateY(-2px); }
+  .count { color:var(--muted); font-size:14px; font-weight:700; margin:10px 4px 0; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; margin-top:12px; }
+  .bk { background:none; border:0; padding:0; cursor:pointer; text-align:center; display:block; width:100%; animation:viewIn .4s var(--ease) both; transition:transform .2s var(--ease); }
+  @media (hover:hover) { .bk:hover { transform:translateY(-6px); } .bk:hover .cv { box-shadow:0 22px 30px -14px rgba(20,31,115,.6); } }
+  .bk:active { transform:scale(.96); }
+  .cv { position:relative; aspect-ratio:3/4; border-radius:6px 16px 16px 6px; background:linear-gradient(145deg,var(--c1),var(--c2)); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:14px 12px;
+    box-shadow:0 12px 22px -12px rgba(20,31,115,.55); overflow:hidden; transition:box-shadow .2s; }
+  .cv::before { content:""; position:absolute; right:0; top:0; bottom:0; width:12px; background:linear-gradient(90deg,#00000030,transparent); }
+  .cv::after { content:"PDF"; position:absolute; left:8px; top:8px; font-size:11px; font-weight:800; letter-spacing:1px; background:#ffffff30; padding:2px 7px; border-radius:6px; }
+  .cv .ic { font-size:42px; }
+  .cv .ct { font-size:15px; font-weight:800; line-height:1.55; display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word; }
+  .bk .nm { margin-top:10px; font-size:15px; font-weight:800; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .bk .sz { color:var(--muted); font-size:12.5px; font-weight:700; margin-top:2px; }
+  .empty { text-align:center; color:var(--muted); padding:40px 10px; font-size:18px; line-height:1.9; }
+
+  #rv { display:none; }
+  .rtop { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+  .rtop .t { flex:1; min-width:140px; font-size:19px; font-weight:800; line-height:1.5; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .b { background:var(--card); border:2px solid var(--line); border-radius:14px; padding:10px 14px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); text-decoration:none; color:var(--text); transition:transform .15s; display:inline-block; }
+  .b:active { transform:scale(.94); } .b.pri { background:var(--blue); color:#fff; border-color:var(--blue); }
+  .cv img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top; opacity:0; transition:opacity .4s; }
+  .cv img.in { opacity:1; }
+  .cv::before { z-index:2; } .cv::after { z-index:2; background:#00000090; }
+  .tools { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .tools .b { padding:7px 14px; box-shadow:none; font-size:17px; }
+  .pg { display:flex; align-items:center; gap:6px; direction:ltr; font-weight:800; font-size:14px; background:var(--card); border:2px solid var(--line); border-radius:14px; padding:5px 10px; }
+  .pg input { width:54px; text-align:center; border:1px solid var(--line); border-radius:8px; background:var(--bg); padding:3px 0; font-size:15px; }
+  #zl { min-width:48px; text-align:center; font-weight:800; font-size:14px; direction:ltr; }
+  #rprog { height:4px; border-radius:4px; background:var(--line); margin-bottom:8px; overflow:hidden; }
+  #rprog i { display:block; height:100%; width:0; background:var(--orange); transition:width .2s; }
+  #sc { height:calc(100dvh - 250px); min-height:420px; overflow:auto; background:#2a2d3a; border-radius:18px; box-shadow:var(--shadow); padding:12px 0 30px; -webkit-overflow-scrolling:touch; }
+  #sc:fullscreen { height:100%; border-radius:0; }
+  #pgs { display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .pg-p { background:#fff; flex:none; box-shadow:0 4px 16px rgba(0,0,0,.45); display:grid; place-items:center; color:#9aa0b8; font-weight:700; }
+  .pg-p canvas { display:block; }
+  .rmsg { color:#c3c8dc; text-align:center; padding:60px 16px; line-height:1.9; }
+  .hint { text-align:center; color:var(--muted); font-size:14px; margin-top:10px; line-height:1.8; }
+  .nav { display:flex; gap:10px; margin-top:12px; }
+  .nav button { flex:1; padding:12px; font-size:16px; font-weight:800; border-radius:14px; border:2px solid var(--line); background:var(--card); cursor:pointer; box-shadow:var(--shadow); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header>📚 المكتبة<a href="index.html" title="رجوع">›</a></header>
+<div class="wrap">
+  <div id="lv">
+    <input type="search" id="q" placeholder="🔍 ابحث عن كتاب">
+    <div class="chips" id="chips"></div>
+    <div class="count" id="cnt"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div id="rv">
+    <div class="rtop">
+      <button class="b" id="back">رجوع ›</button>
+      <div class="t" id="rt"></div>
+      <a class="b pri" id="open" target="_blank" rel="noopener">↗ فتح</a>
+      <a class="b" id="dl" download>⬇ تحميل</a>
+    </div>
+    <div class="tools">
+      <div class="pg"><input id="pin" type="number" min="1" value="1" aria-label="رقم الصفحة"><span>/ <span id="tot">–</span></span></div>
+      <button class="b" id="zo" aria-label="تصغير">−</button><span id="zl">100%</span><button class="b" id="zi" aria-label="تكبير">+</button>
+      <button class="b" id="fit" aria-label="ملاءمة العرض">⤢</button><button class="b" id="fsb" aria-label="ملء الشاشة">⛶</button>
+    </div>
+    <div id="rprog"><i></i></div>
+    <div id="sc"><div id="pgs"></div></div>
+    <div class="nav"><button id="prev">‹ الكتاب السابق</button><button id="next">الكتاب التالي ›</button></div>
+  </div>
+</div>
+
+<script src="pdfs-list.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const B = typeof PDFS !== 'undefined' ? PDFS : [];
+const cats = [...new Set(B.map(b => b.cat))];
+const norm = s => s.replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').toLowerCase();
+const urlOf = b => 'pdfs/' + b.src.split('/').map(encodeURIComponent).join('/');
+const mb = n => n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+const PAL = [['#3447a0','#141f73'],['#8e44ad','#4a235a'],['#c0392b','#7b241c'],['#16a085','#0b5345'],['#d35400','#873600'],['#2471a3','#154360'],['#7d6608','#4d3f05'],['#5d6d7e','#2c3e50']];
+const hash = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+let catSel = 'الكل', cur = -1;
+
+function visible() {
+  const q = norm($('q').value.trim());
+  return B.map((b, i) => i).filter(i => (catSel === 'الكل' || B[i].cat === catSel) && (!q || norm(B[i].title).includes(q)));
+}
+function renderChips() {
+  const c = $('chips'); c.innerHTML = '';
+  if (cats.length < 2) return;
+  ['الكل', ...cats].forEach(n => {
+    const b = document.createElement('button'); b.className = 'chip' + (n === catSel ? ' on' : ''); b.textContent = n;
+    b.onclick = () => { catSel = n; renderChips(); renderGrid(); }; c.appendChild(b);
+  });
+}
+function renderGrid() {
+  const g = $('grid'); g.innerHTML = '';
+  if (typeof PDFS === 'undefined') { g.style.display = 'block'; $('cnt').textContent = ''; g.innerHTML = '<div class="empty">ملف pdfs-list.js مش موجود جنب الصفحة.<br>شغّل python build5.py وارفعه مع الصفحة.</div>'; return; }
+  if (!B.length) { g.style.display = 'block'; $('cnt').textContent = ''; g.innerHTML = '<div class="empty">لا توجد كتب حالياً.</div>'; return; }
+  const vis = visible();
+  $('cnt').textContent = vis.length + ' كتاب';
+  if (!vis.length) { g.style.display = 'block'; g.innerHTML = '<div class="empty">مفيش كتاب بالاسم ده.</div>'; return; }
+  g.style.display = '';
+  vis.forEach((i, k) => {
+    const b = B[i], el = document.createElement('button'); el.className = 'bk'; el.style.animationDelay = Math.min(k, 14) * 30 + 'ms';
+    const [c1, c2] = PAL[hash(b.title) % PAL.length];
+    const cv = document.createElement('div'); cv.className = 'cv'; cv.style.setProperty('--c1', c1); cv.style.setProperty('--c2', c2);
+    const ic = document.createElement('div'); ic.className = 'ic'; ic.textContent = '📖';
+    const ct = document.createElement('div'); ct.className = 'ct'; ct.textContent = b.title; cv.append(ic, ct); attachCover(b, cv);
+    const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = b.title;
+    const sz = document.createElement('div'); sz.className = 'sz'; sz.textContent = b.cat + ' • ' + mb(b.size);
+    el.append(cv, nm, sz); el.onclick = () => openBook(i); g.appendChild(el);
+  });
+}
+
+function show(v) {
+  const L = $('lv'), R = $('rv'), el = v === 'reader' ? R : L;
+  L.style.display = v === 'list' ? 'block' : 'none'; R.style.display = v === 'reader' ? 'block' : 'none';
+  el.classList.remove('view'); void el.offsetWidth; el.classList.add('view'); window.scrollTo({ top: 0 });
+}
+function openBook(i) {
+  cur = i; const b = B[i], u = urlOf(b);
+  $('rt').textContent = b.title; $('open').href = u; $('dl').href = u; $('dl').setAttribute('download', b.src.split('/').pop());
+  show('reader'); loadReader(u);
+}
+function step(d) { const vis = visible(); if (!vis.length) return; const k = vis.indexOf(cur); openBook(vis[(k + d + vis.length) % vis.length]); }
+$('back').onclick = () => { R.gen++; killPdf(); $('pgs').innerHTML = ''; show('list'); };
+$('prev').onclick = () => step(-1);
+$('next').onclick = () => step(1);
+/* ===== PDF.js (بيتحمّل أول ما يحتاجه) ===== */
+const PJ = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf';
+let pjP = null;
+const loadPJ = () => pjP || (pjP = new Promise((ok, no) => {
+  if (window.pdfjsLib) return ok(window.pdfjsLib);
+  const s = document.createElement('script'); s.src = PJ + '.min.js';
+  s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = PJ + '.worker.min.js'; ok(pdfjsLib); };
+  s.onerror = () => { pjP = null; no(new Error('pdfjs')); };
+  document.head.appendChild(s);
+}));
+
+/* ===== أغلفة الكتب = الصفحة الأولى ===== */
+const ckey = b => 'cv1|' + b.src + '|' + b.size;
+let cq = Promise.resolve();
+function makeCover(b) {
+  return cq = cq.then(async () => {
+    const lib = await loadPJ();
+    const pdf = await lib.getDocument({ url: urlOf(b) }).promise;
+    const p = await pdf.getPage(1), v0 = p.getViewport({ scale: 1 }), v = p.getViewport({ scale: 320 / v0.width });
+    const c = document.createElement('canvas'); c.width = v.width; c.height = v.height;
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+    await p.render({ canvasContext: x, viewport: v }).promise;
+    pdf.destroy();
+    const d = c.toDataURL('image/jpeg', .8);
+    try { localStorage.setItem(ckey(b), d); } catch (e) {}
+    return d;
+  }).catch(() => null);
+}
+const cio = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return; cio.unobserve(e.target); e.target._go && e.target._go();
+}), { rootMargin: '300px' }) : null;
+function setCover(cv, url, b) {
+  const im = new Image(); im.alt = 'غلاف ' + b.title;
+  im.onload = () => { cv.append(im); requestAnimationFrame(() => im.classList.add('in')); };
+  im.src = url;
+}
+function attachCover(b, cv) {
+  if (b.cover) return setCover(cv, b.cover.split('/').map(encodeURIComponent).join('/'), b); /* لو build سكريبتك حط غلاف جاهز */
+  let c = null; try { c = localStorage.getItem(ckey(b)); } catch (e) {}
+  if (c) return setCover(cv, c, b);
+  cv._go = () => makeCover(b).then(d => d && setCover(cv, d, b));
+  cio ? cio.observe(cv) : cv._go();
+}
+
+/* ===== القارئ ===== */
+const R = { pdf: null, zoom: 1, nodes: [], gen: 0, q: Promise.resolve(), cur: 1, obs: null };
+const cssW = () => Math.max(220, ($('sc').clientWidth - 20) * R.zoom);
+function killPdf() { if (R.obs) R.obs.disconnect(); if (R.pdf) { R.pdf.destroy(); R.pdf = null; } R.nodes = []; }
+function setPg(n) { R.cur = n; $('pin').value = n; $('rprog').firstElementChild.style.width = (R.nodes.length ? n / R.nodes.length * 100 : 0) + '%'; }
+async function loadReader(u) {
+  const gen = ++R.gen; killPdf(); R.zoom = 1;
+  $('pgs').innerHTML = '<div class="rmsg">جاري تحميل الكتاب…</div>'; $('sc').scrollTop = 0; $('tot').textContent = '–'; setPg(1);
+  try {
+    const lib = await loadPJ(), pdf = await lib.getDocument({ url: u }).promise;
+    if (gen !== R.gen) return pdf.destroy();
+    R.pdf = pdf; $('tot').textContent = pdf.numPages; $('pin').max = pdf.numPages; await build();
+  } catch (e) {
+    if (gen === R.gen) {
+      const h = $('pgs'); h.innerHTML = '';
+      const f = document.createElement('iframe'); f.src = u; f.title = 'قارئ PDF';
+      f.style.cssText = 'width:100%;height:calc(100dvh - 300px);min-height:420px;border:0;background:#fff';
+      const m = document.createElement('div'); m.className = 'rmsg'; m.style.padding = '10px 16px'; m.textContent = 'لو الكتاب ماظهرش، اضغط "↗ فتح".';
+      h.append(f, m);
+    }
+  }
+}
+async function build() {
+  const gen = ++R.gen, pdf = R.pdf, h = $('pgs');
+  const p1 = await pdf.getPage(1); if (gen !== R.gen) return;
+  const v = p1.getViewport({ scale: 1 }), w = cssW();
+  if (R.obs) R.obs.disconnect(); h.innerHTML = ''; R.nodes = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const d = document.createElement('div'); d.className = 'pg-p'; d.dataset.n = i; d.textContent = i;
+    d.style.width = w + 'px'; d.style.height = w * v.height / v.width + 'px'; h.appendChild(d); R.nodes.push(d);
+  }
+  R.obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && draw(e.target, gen)), { root: $('sc'), rootMargin: '1400px 0px' });
+  R.nodes.forEach(n => R.obs.observe(n)); $('zl').textContent = Math.round(R.zoom * 100) + '%';
+}
+function draw(node, gen) {
+  if (node._b) return; node._b = 1;
+  R.q = R.q.then(async () => {
+    if (gen !== R.gen) return;
+    const p = await R.pdf.getPage(+node.dataset.n), v1 = p.getViewport({ scale: 1 }), w = cssW(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const v = p.getViewport({ scale: w / v1.width * dpr }), c = document.createElement('canvas');
+    c.width = v.width; c.height = v.height; c.style.width = w + 'px'; c.style.height = w * v1.height / v1.width + 'px';
+    await p.render({ canvasContext: c.getContext('2d'), viewport: v }).promise;
+    if (gen !== R.gen) return; node.style.height = c.style.height; node.textContent = ''; node.append(c);
+  }).catch(() => {});
+}
+function goTo(n) {
+  n = Math.min(Math.max(1, n | 0), R.nodes.length || 1); const sc = $('sc'), el = R.nodes[n - 1]; if (!el) return;
+  sc.scrollTop += el.getBoundingClientRect().top - sc.getBoundingClientRect().top - 8; setPg(n);
+}
+async function zoomTo(z) { if (!R.pdf) return; const k = R.cur; R.zoom = Math.min(3, Math.max(.5, z)); await build(); goTo(k); }
+let tick = 0;
+$('sc').addEventListener('scroll', () => {
+  if (tick) return; tick = requestAnimationFrame(() => {
+    tick = 0; const sc = $('sc'), y = sc.getBoundingClientRect().top + sc.clientHeight / 3; let c = 1;
+    for (let i = 0; i < R.nodes.length; i++) { if (R.nodes[i].getBoundingClientRect().top <= y) c = i + 1; else break; }
+    setPg(c);
+  });
+});
+$('pin').onchange = e => goTo(+e.target.value);
+$('zi').onclick = () => zoomTo(R.zoom * 1.25);
+$('zo').onclick = () => zoomTo(R.zoom / 1.25);
+$('fit').onclick = () => zoomTo(1);
+$('fsb').onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : $('sc').requestFullscreen(); } catch (e) {} };
+let rt; window.addEventListener('resize', () => {
+  if (!R.pdf || $('rv').style.display !== 'block') return;
+  clearTimeout(rt); rt = setTimeout(() => { const k = R.cur; build().then(() => goTo(k)); }, 250);
+});
+
+$('q').oninput = renderGrid;
+renderChips(); renderGrid();
+</script>
+</body>
+</html>
