@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ألعاب الأطفال</title>
+<style>
+  :root {
+    --navy:#141f73; --blue:#3447a0; --orange:#f08030; --ok:#2ecc71; --no:#ff5a5f;
+    --bg:#f4f6ff; --card:#ffffff; --text:#1d2140; --muted:#6b7090; --line:#e3e6f5;
+    --shadow:0 8px 24px -10px rgba(30,40,110,.25);
+    --ease:cubic-bezier(.2,.8,.2,1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#10121c; --card:#1b1e2e; --text:#eceefb; --muted:#9aa0c4; --line:#2b2f47; --shadow:0 8px 24px -10px rgba(0,0,0,.6); }
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Tajawal","Cairo","Segoe UI",Tahoma,sans-serif; }
+  button { font-family:inherit; color:inherit; }
+
+  header { position:sticky; top:0; z-index:20; background:linear-gradient(135deg,var(--navy),var(--blue)); color:#fff; text-align:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 70px 14px; font-size:22px; font-weight:800; box-shadow:0 6px 20px -8px rgba(20,31,115,.7); }
+  header a { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#fff; text-decoration:none; font-size:30px; line-height:1; padding:4px 10px; border-radius:12px; transition:background .2s; }
+  header a:hover { background:#ffffff22; }
+  #stars { position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:16px; background:#ffffff26; padding:6px 12px; border-radius:999px; backdrop-filter:blur(6px); }
+  #stars.bump { animation:bump .5s var(--ease); }
+  @keyframes bump { 40% { transform:translateY(-50%) scale(1.25); } }
+
+  .wrap { max-width:680px; margin:0 auto; padding:18px 14px 50px; }
+  .view { animation:viewIn .4s var(--ease); }
+  @keyframes viewIn { from { opacity:0; transform:translateY(14px) scale(.98); } }
+
+  .sec { margin:22px 4px 12px; font-size:19px; font-weight:800; display:flex; align-items:center; gap:8px; }
+  .sec::after { content:""; flex:1; height:2px; background:var(--line); border-radius:2px; }
+  .grid { display:grid; gap:12px; }
+  .g1 { grid-template-columns:1fr; } .g2 { grid-template-columns:repeat(2,1fr); } .g3 { grid-template-columns:repeat(3,1fr); }
+  .g4 { grid-template-columns:repeat(4,1fr); } .g5 { grid-template-columns:repeat(5,1fr); }
+  #home .grid { grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); }
+
+  .tile { display:flex; flex-direction:column; align-items:center; gap:10px; background:var(--card); border:2px solid var(--line); border-radius:22px;
+    padding:18px 10px 16px; cursor:pointer; font-size:16px; font-weight:700; box-shadow:var(--shadow); transition:transform .2s var(--ease), box-shadow .2s, border-color .2s;
+    opacity:0; animation:tileIn .5s var(--ease) forwards; }
+  @keyframes tileIn { from { opacity:0; transform:translateY(16px) scale(.96); } to { opacity:1; transform:none; } }
+  .tile .ic { width:66px; height:66px; border-radius:20px; background:var(--c); display:grid; place-items:center; font-size:34px; box-shadow:0 10px 18px -8px var(--c); transition:transform .25s var(--ease); }
+  @media (hover:hover) { .tile:hover { transform:translateY(-4px); border-color:var(--c); } .tile:hover .ic { transform:rotate(-8deg) scale(1.08); } }
+  .tile:active { transform:scale(.95); }
+
+  #game { display:none; }
+  .top { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .top h2 { margin:0; font-size:21px; flex:1; font-weight:800; }
+  .backbtn { background:var(--card); border:2px solid var(--line); border-radius:14px; padding:10px 16px; font-size:15px; font-weight:700; cursor:pointer; box-shadow:var(--shadow); transition:transform .15s; }
+  .backbtn:active { transform:scale(.94); }
+
+  .opt, .card { min-height:66px; font-size:21px; font-weight:800; background:var(--card); border:2px solid var(--line); border-radius:18px; cursor:pointer; box-shadow:var(--shadow);
+    transition:transform .15s var(--ease), background .2s, border-color .2s, color .2s, opacity .2s; }
+  @media (hover:hover) { .opt:not(:disabled):hover, .card:not(.open):hover { transform:translateY(-3px); border-color:var(--blue); } }
+  .opt:not(:disabled):active, .card:active { transform:scale(.95); }
+  .opt.emoji { font-size:40px; }
+  .opt.long { font-size:18px; padding:12px 14px; line-height:1.6; text-align:center; position:relative; }
+  .opt.ok, .card.ok { background:var(--ok); border-color:var(--ok); color:#fff; opacity:1; animation:pop .35s var(--ease); }
+  .opt.no { background:var(--no); border-color:var(--no); color:#fff; opacity:1; animation:sh .35s; }
+  .opt:disabled { opacity:.5; cursor:default; }
+  .opt[data-n]::before { content:attr(data-n); position:absolute; right:10px; top:50%; transform:translateY(-50%); width:28px; height:28px; border-radius:50%; background:#ffffff40; display:grid; place-items:center; font-size:15px; }
+  .card { height:84px; font-size:36px; transform-style:preserve-3d; }
+  .card.open { background:linear-gradient(135deg,#ffe08a,#ffc14d); color:#222; border-color:var(--orange); animation:flip .35s var(--ease); }
+  @keyframes flip { from { transform:rotateY(90deg); } }
+  @keyframes pop { 50% { transform:scale(1.08); } }
+  .shake { animation:sh .35s; }
+  @keyframes sh { 25% { transform:translateX(-7px); } 75% { transform:translateX(7px); } }
+
+  .bar { height:10px; background:var(--line); border-radius:999px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--orange),#ffc14d); border-radius:999px; transition:width .5s var(--ease); }
+  .info { text-align:center; font-size:18px; margin:12px 0; color:var(--muted); font-weight:700; }
+  .big { font-size:46px; text-align:center; margin:14px 0 18px; font-weight:800; }
+  .huge { font-size:76px; text-align:center; margin:8px 0 6px; }
+  .dot { width:120px; height:120px; border-radius:50%; margin:12px auto 18px; box-shadow:0 14px 26px -10px rgba(0,0,0,.35), inset 0 -8px 14px rgba(0,0,0,.12); }
+  .clue, .verse { background:var(--card); border:2px solid var(--line); border-radius:20px; padding:20px 16px; margin:8px 0 14px; text-align:center; font-size:23px; font-weight:800; line-height:1.9; box-shadow:var(--shadow); }
+  .verse small { display:block; font-size:14px; color:var(--muted); margin-top:6px; font-weight:600; }
+  .blank { color:var(--orange); letter-spacing:2px; }
+
+  .field { position:relative; height:300px; border-radius:22px; overflow:hidden; background:radial-gradient(circle at 30% 20%,#2b3a9a,#141f73 70%); box-shadow:var(--shadow); }
+  .star { position:absolute; width:60px; height:60px; font-size:44px; background:none; border:0; cursor:pointer; padding:0; transition:left .35s var(--ease), top .35s var(--ease); filter:drop-shadow(0 0 10px #ffd54a); }
+  #si { color:var(--text); }
+  .ttt .opt { height:96px; font-size:46px; }
+
+  .win { margin-top:20px; padding:22px 16px; text-align:center; font-size:22px; font-weight:800; background:var(--card); border:2px solid var(--orange); border-radius:22px; box-shadow:var(--shadow); animation:pop .5s var(--ease); }
+  .again { margin-top:14px; background:linear-gradient(135deg,var(--orange),#ff9f55); color:#fff; border:0; border-radius:14px; padding:13px 26px; font-size:18px; font-weight:800; cursor:pointer; box-shadow:0 10px 18px -8px var(--orange); transition:transform .15s; }
+  .again:active { transform:scale(.94); }
+
+  .confetti { position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:50; }
+  .confetti span { position:absolute; top:-50px; animation:fall 1.9s ease-in forwards; }
+  @keyframes fall { to { transform:translateY(112vh) rotate(420deg); } }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .tile { opacity:1; } }
+
+/* ===== مظهر سينمائي (ذهبي/ليلي) + يتبع إعدادات الموقع ===== */
+:root{--navy:#070b22;--blue:#1a2a78;--orange:#d8a94a;--gold:#d8a94a;--gold-hi:#f4dc92;--bg:#070b22;--card:#111c55cc;--text:#f2e8d0;--muted:#b4aea0;--line:#d8a94a45;--glass:#070b22d9;--shadow:0 18px 40px -18px #000c;--kufi:"Reem Kufi",Cairo,sans-serif}
+html[data-theme=light]{--navy:#141f73;--blue:#3447a0;--bg:#f3ead3;--card:#fffaf0;--text:#1b1a2e;--muted:#58546a;--line:#9a6a1445;--gold:#9a6a14;--gold-hi:#6e4a0a;--glass:#f3ead3e6;--shadow:0 14px 30px -16px #5a3d0a66}
+body{background:radial-gradient(90% 55% at 50% -8%,#23358f66,transparent 70%),var(--bg);min-height:100vh}
+html[data-theme=light] body{background:radial-gradient(90% 55% at 50% -8%,#d8a94a40,transparent 70%),var(--bg)}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 40%,transparent 55%,#0007 100%)}
+html[data-theme=light] body::after{display:none}
+.wrap{position:relative;z-index:1;max-width:920px}
+#game{max-width:680px;margin:auto}
+header{background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);color:var(--gold-hi);font-family:var(--kufi);font-weight:700;box-shadow:none}
+header a{color:var(--gold-hi)}#stars{background:#d8a94a22;border:1px solid var(--line);font-family:var(--kufi)}
+.hero{position:relative;isolation:isolate;text-align:center;padding:40px 14px 28px;margin:0 0 6px;overflow:hidden;border-radius:28px;border:1px solid var(--line);background:radial-gradient(120% 90% at 50% 0,#23358f66,transparent 70%),var(--card)}
+html[data-theme=light] .hero{background:radial-gradient(120% 90% at 50% 0,#d8a94a44,transparent 70%),var(--card)}
+.hero::before{content:"";position:absolute;left:50%;top:40%;width:150%;aspect-ratio:1;translate:-50% -50%;z-index:-1;background:repeating-conic-gradient(#f4dc9228 0 3deg,transparent 3deg 14deg);-webkit-mask:radial-gradient(closest-side,#000 5%,transparent 65%);mask:radial-gradient(closest-side,#000 5%,transparent 65%);animation:spin 90s linear infinite}
+@keyframes spin{to{rotate:360deg}}
+.hero small{font:600 16px var(--kufi);color:var(--gold);letter-spacing:4px}
+.hero h1{margin:4px 0 6px;font:700 clamp(42px,11vw,80px)/1.2 var(--kufi);background:linear-gradient(180deg,var(--gold-hi),var(--gold) 62%,#8a5d12);-webkit-background-clip:text;background-clip:text;color:transparent;animation:viewIn 1.2s var(--ease) both}
+.hero p{margin:0 0 14px;color:var(--muted);font-weight:600}
+.chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.chips span{padding:4px 14px;border:1px solid var(--line);border-radius:999px;font-weight:700;color:var(--gold-hi)}
+.sec{font-family:var(--kufi);font-weight:500;color:var(--gold-hi);font-size:22px}.sec::after{background:linear-gradient(270deg,var(--line),transparent)}
+.tile{background:linear-gradient(160deg,var(--card),transparent 140%);border:1px solid var(--line);position:relative;overflow:hidden;font-family:var(--kufi);font-weight:500;color:var(--text)}
+.tile .ic{border-radius:50%;box-shadow:0 0 26px -4px var(--c),inset 0 -6px 10px #0003}
+.tile::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 40%,#f4dc9235 50%,transparent 60%);translate:-120% 0;transition:translate .7s}
+@media(hover:hover){.tile:hover::after{translate:120% 0}}
+.top h2{font-family:var(--kufi);color:var(--gold-hi);font-weight:500}
+.opt,.card,.backbtn{border:1px solid var(--line);color:var(--text)}
+.bar i{background:linear-gradient(90deg,var(--gold),var(--gold-hi))}
+.again{background:linear-gradient(135deg,var(--gold),var(--gold-hi));color:#1b1a2e;font-family:var(--kufi)}
+.react{display:block;width:100%;height:260px;border:0;border-radius:26px;font:700 26px var(--kufi);color:#fff;cursor:pointer;box-shadow:var(--shadow);transition:background .15s}
+.react.wait{background:#c4453a}.react.go{background:#2ecc71}.react.done{background:var(--blue)}
+.holes .hole{height:96px;border-radius:50%/40%;font-size:46px;background:radial-gradient(ellipse at 50% 70%,#000a,#3b2a1a 70%);border:3px solid #0006;overflow:hidden;cursor:pointer;transition:transform .15s}
+.hole.up{background:radial-gradient(ellipse at 50% 70%,#5b3d1f,#8d6e63);transform:translateY(-3px)}
+.pad{height:120px;border-radius:24px;border:0;background:var(--c);opacity:.45;cursor:pointer;box-shadow:var(--shadow);transition:opacity .15s,transform .15s}
+.pad.lit{opacity:1;transform:scale(1.05);box-shadow:0 0 36px var(--c)}
+.count{font-size:38px;letter-spacing:4px;line-height:1.5}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&display=swap" rel="stylesheet">
+<script src="settings.js"></script>
+</head>
+<body>
+<header>ألعاب الأطفال<a href="index.html" title="رجوع">›</a><span id="stars">⭐ 0</span></header>
+<div class="wrap">
+  <div id="home" class="view"></div>
+  <div id="game">
+    <div class="top"><button class="backbtn" id="back">رجوع ›</button><h2 id="title"></h2></div>
+    <div id="area"></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const area = $('area');
+const rand = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+let total = 0, cur = 0, timers = [];
+try { total = +localStorage.getItem('kidStars') || 0; } catch (e) {}
+function updStars(bump) {
+  const s = $('stars'); s.textContent = '⭐ ' + total;
+  if (bump) { s.classList.remove('bump'); void s.offsetWidth; s.classList.add('bump'); }
+}
+function save() { try { localStorage.setItem('kidStars', total); } catch (e) {} }
+updStars();
+
+function every(f, ms) { const id = setInterval(f, ms); timers.push(id); return id; }
+function later(f, ms) { const id = setTimeout(f, ms); timers.push(id); return id; }
+function clearAll() { timers.forEach(id => { clearInterval(id); clearTimeout(id); }); timers = []; }
+function btn(text, fn, cls = 'opt') { const b = document.createElement('button'); b.className = cls; b.textContent = text; b.onclick = fn; return b; }
+function shake(el) { el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 400); }
+
+function confetti() {
+  const box = document.createElement('div'); box.className = 'confetti';
+  const E = ['🎉', '⭐', '✨', '🎊', '💛', '🌟'];
+  for (let i = 0; i < 30; i++) {
+    const s = document.createElement('span'); s.textContent = E[rand(E.length)];
+    s.style.left = rand(100) + '%'; s.style.animationDelay = (Math.random() * .5) + 's'; s.style.fontSize = (18 + rand(20)) + 'px';
+    box.appendChild(s);
+  }
+  document.body.appendChild(box); setTimeout(() => box.remove(), 2600);
+}
+
+function win(text, good = true) {
+  clearAll();
+  if (good) { total++; save(); updStars(true); confetti(); }
+  const d = document.createElement('div'); d.className = 'win';
+  d.innerHTML = '<div>' + (good ? '🎉' : '💪') + ' ' + text + '</div>';
+  d.appendChild(btn('🔁 العب تاني', () => start(cur), 'again'));
+  area.appendChild(d);
+  d.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* أسئلة اختيار من متعدد (تُستخدم في عدة ألعاب) */
+function quiz(totalQ, make, goodMin) {
+  let n = 0, ok = 0;
+  (function next() {
+    if (n === totalQ) { area.innerHTML = ''; win('جبت ' + ok + ' من ' + totalQ + ' صح', ok >= goodMin); return; }
+    n++; const k = n;
+    const q = make(), cols = q.cols || 'g2';
+    area.innerHTML = '<div class="bar"><i id="bi" style="width:' + ((k - 1) / totalQ * 100) + '%"></i></div><div class="info">سؤال ' + k + ' من ' + totalQ + '</div>' + q.html + '<div class="grid ' + cols + ' view" id="qo"></div>';
+    requestAnimationFrame(() => requestAnimationFrame(() => { const bi = $('bi'); if (bi) bi.style.width = (k / totalQ * 100) + '%'; }));
+    q.options.forEach(o => {
+      const b = btn(o.label, () => {
+        area.querySelectorAll('.opt').forEach(x => x.disabled = true);
+        if (o.ok) { ok++; b.classList.add('ok'); }
+        else { b.classList.add('no'); area.querySelectorAll('.opt').forEach(x => { if (x.dataset.ok === '1') x.classList.add('ok'); }); }
+        later(next, 900);
+      }, cols === 'g1' ? 'opt long' : 'opt');
+      if (o.ok) b.dataset.ok = '1';
+      $('qo').appendChild(b);
+    });
+  })();
+}
+
+/* ترتيب عناصر بالتسلسل الصحيح (تُستخدم في لعبتين) */
+function seq(items, cols) {
+  let nx = 0;
+  area.innerHTML = '<div class="info">اضغط بالترتيب الصحيح من الأول للأخير</div><div class="grid ' + cols + '" id="sq"></div>';
+  shuffle(items.map((t, i) => ({ t, i }))).forEach(o => {
+    const b = btn(o.t, () => {
+      if (o.i === nx) { nx++; b.disabled = true; b.classList.add('ok'); b.dataset.n = nx; if (nx === items.length) win('ترتيب صحيح، برافو!'); }
+      else shake(b);
+    }, 'opt long');
+    $('sq').appendChild(b);
+  });
+}
+
+/* ================= ألعاب ممتعة ================= */
+function memory(pool) {
+  const em = shuffle(pool).slice(0, 6);
+  area.innerHTML = '<div class="info">اقلب الكروت ودوّر على الصور المتشابهة</div><div class="grid g4" id="mg"></div>';
+  let first = null, lock = false, found = 0, tries = 0;
+  shuffle([...em, ...em]).forEach(e => {
+    const b = btn('❓', () => {
+      if (lock || b.classList.contains('open')) return;
+      b.textContent = e; b.classList.add('open');
+      if (!first) { first = b; return; }
+      tries++;
+      if (first.textContent === e) { first = null; found++; if (found === 6) later(() => win('برافو! خلصتها في ' + tries + ' محاولة'), 400); }
+      else {
+        lock = true; const a = first; first = null;
+        later(() => { a.textContent = '❓'; b.textContent = '❓'; a.classList.remove('open'); b.classList.remove('open'); lock = false; }, 800);
+      }
+    }, 'card');
+    $('mg').appendChild(b);
+  });
+}
+const memoryFun = () => memory(['🐶','🐱','🐰','🦁','🐸','🐵','🐼','🐯']);
+const memoryChurch = () => memory(['✝️','🕊️','⛪','📖','🕯️','🙏','🐑','⭐','👼','🍞']);
+
+function math() {
+  quiz(5, () => {
+    const a = rand(10) + 1, c = rand(10) + 1, plus = Math.random() < .6;
+    const hi = Math.max(a, c), lo = Math.min(a, c), A = plus ? a + c : hi - lo;
+    const s = new Set([A]); while (s.size < 4) { const x = A + rand(7) - 3; if (x >= 0) s.add(x); }
+    return { html: '<div class="big" dir="ltr">' + (plus ? a + ' + ' + c : hi + ' − ' + lo) + ' = ؟</div>',
+             options: shuffle([...s]).map(v => ({ label: v, ok: v === A })) };
+  }, 3);
+}
+
+function guess() {
+  const secret = rand(10) + 1; let tries = 0;
+  area.innerHTML = '<div class="info" id="gi">أنا فكرت في رقم من 1 إلى 10. خمّنه!</div><div class="grid g5" id="gg"></div>';
+  for (let n = 1; n <= 10; n++) {
+    const b = btn(n, () => {
+      tries++;
+      if (n === secret) { b.classList.add('ok'); win('برافو! عرفته في ' + tries + ' محاولة'); }
+      else { b.disabled = true; $('gi').textContent = n < secret ? 'الرقم أكبر ⬆️' : 'الرقم أصغر ⬇️'; }
+    });
+    $('gg').appendChild(b);
+  }
+}
+
+function rps() {
+  let me = 0, pc = 0; const E = { r: '✊', p: '✋', s: '✌️' };
+  area.innerHTML = '<div class="info" id="ri">أنت 0 - 0 الكمبيوتر (أول واحد يوصل 3)</div><div class="big" id="rr">❓ × ❓</div><div class="grid g3" id="rg"></div>';
+  Object.keys(E).forEach(k => {
+    $('rg').appendChild(btn(E[k], () => {
+      if (me === 3 || pc === 3) return;
+      const c = ['r', 'p', 's'][rand(3)];
+      $('rr').textContent = E[k] + ' × ' + E[c];
+      if (k !== c) { if ((k === 'r' && c === 's') || (k === 'p' && c === 'r') || (k === 's' && c === 'p')) me++; else pc++; }
+      $('ri').textContent = 'أنت ' + me + ' - ' + pc + ' الكمبيوتر';
+      if (me === 3) win('كسبت!'); else if (pc === 3) win('الكمبيوتر كسب، جرّب تاني', false);
+    }, 'opt emoji'));
+  });
+}
+
+function stars() {
+  let s = 0, t = 15;
+  area.innerHTML = '<div class="info" id="si"></div><div class="field" id="f"><button class="star" id="st">⭐</button></div>';
+  const st = $('st'), f = $('f');
+  const upd = () => $('si').textContent = '⏱️ ' + t + '   ⭐ ' + s;
+  const mv = () => { st.style.left = rand(Math.max(1, f.clientWidth - 60)) + 'px'; st.style.top = rand(Math.max(1, f.clientHeight - 60)) + 'px'; };
+  upd(); mv();
+  st.onclick = () => { s++; mv(); upd(); };
+  every(mv, 1100);
+  every(() => { t--; upd(); if (t <= 0) win('جمعت ' + s + ' نجمة!', s >= 8); }, 1000);
+}
+
+function colors() {
+  const C = [['أحمر','#e53935'],['أزرق','#1e88e5'],['أخضر','#43a047'],['أصفر','#fdd835'],['برتقالي','#fb8c00'],['بنفسجي','#8e24aa'],['وردي','#ec407a'],['بني','#795548']];
+  quiz(6, () => {
+    const ans = C[rand(C.length)];
+    const o = shuffle([ans, ...shuffle(C.filter(x => x !== ans)).slice(0, 3)]);
+    return { html: '<div class="info">ما اسم هذا اللون؟</div><div class="dot" style="background:' + ans[1] + '"></div>',
+             options: o.map(x => ({ label: x[0], ok: x === ans })) };
+  }, 4);
+}
+
+function order() {
+  let nx = 1, t0 = null;
+  area.innerHTML = '<div class="info">اضغط الأرقام من 1 إلى 9 بالترتيب</div><div class="grid g3" id="og"></div>';
+  shuffle([1,2,3,4,5,6,7,8,9]).forEach(n => {
+    const b = btn(n, () => {
+      if (t0 === null) t0 = Date.now();
+      if (n === nx) {
+        b.disabled = true; b.classList.add('ok'); nx++;
+        if (nx > 9) { const sec = (Date.now() - t0) / 1000; win('خلصت في ' + sec.toFixed(1) + ' ثانية!'); }
+      } else shake(b);
+    });
+    $('og').appendChild(b);
+  });
+}
+
+function animals() {
+  const AN = [['🐘','فيل'],['🦁','أسد'],['🐒','قرد'],['🐪','جمل'],['🐑','خروف'],['🐓','ديك'],['🐟','سمكة'],['🦒','زرافة'],['🐢','سلحفاة'],['🐴','حصان'],['🐄','بقرة'],['🐱','قطة'],['🐶','كلب'],['🐰','أرنب']];
+  const d = shuffle(AN);
+  quiz(6, () => {
+    const a = d.pop();
+    const o = shuffle([a, ...shuffle(AN.filter(x => x !== a)).slice(0, 2)]);
+    return { html: '<div class="huge">' + a[0] + '</div>', cols: 'g3', options: o.map(x => ({ label: x[1], ok: x === a })) };
+  }, 4);
+}
+
+function ttt() {
+  const b = Array(9).fill(''), cells = []; let over = false;
+  const L = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  const wnr = p => L.some(l => l.every(i => b[i] === p));
+  area.innerHTML = '<div class="grid g3 ttt" id="tg"></div><div class="info">أنت ❌ والكمبيوتر ⭕</div>';
+  const draw = () => cells.forEach((c, i) => c.textContent = b[i] === 'X' ? '❌' : b[i] === 'O' ? '⭕' : '');
+  const end = () => {
+    if (wnr('X')) { over = true; win('كسبت!'); return true; }
+    if (wnr('O')) { over = true; win('الكمبيوتر كسب، جرّب تاني', false); return true; }
+    if (b.every(x => x)) { over = true; win('تعادل!', false); return true; }
+    return false;
+  };
+  const ai = () => {
+    const free = b.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+    const find = p => free.find(i => { b[i] = p; const w = wnr(p); b[i] = ''; return w; });
+    let m = find('O');
+    if (m === undefined && Math.random() < .65) m = find('X');
+    if (m === undefined) m = (!b[4] && Math.random() < .7) ? 4 : free[rand(free.length)];
+    b[m] = 'O';
+  };
+  for (let i = 0; i < 9; i++) {
+    const c = btn('', () => {
+      if (over || b[i]) return;
+      b[i] = 'X'; draw(); if (end()) return;
+      ai(); draw(); end();
+    });
+    cells.push(c); $('tg').appendChild(c);
+  }
+}
+
+function odd() {
+  const P = [['🍎','🍅'],['🐶','🐺'],['🐱','🐯'],['🍊','🍋'],['🐰','🐭'],['⭐','🌟'],['🌞','🌝']];
+  let round = 0;
+  (function next() {
+    if (round === 5) { win('أنت شاطر! لقيت كل الأشكال المختلفة'); return; }
+    round++;
+    const size = round < 3 ? 3 : 4, p = P[rand(P.length)];
+    const [a, o] = Math.random() < .5 ? [p[1], p[0]] : p, oddIdx = rand(size * size);
+    area.innerHTML = '<div class="info">اعثر على الشكل المختلف (' + round + ' من 5)</div><div class="grid g' + size + ' view" id="od"></div>';
+    for (let i = 0; i < size * size; i++) {
+      const x = btn(i === oddIdx ? o : a, () => {
+        if (i === oddIdx) { x.classList.add('ok'); later(next, 400); } else shake(x);
+      }, 'opt emoji');
+      $('od').appendChild(x);
+    }
+  })();
+}
+
+/* ================= ألعاب دينية ================= */
+function whoami() {
+  const B = [
+    ['بنيت فلكًا كبيرًا لأنجو أنا وأسرتي من الطوفان', 'نوح'],
+    ['هزمت جليات الجبار بمقلاع وحجر صغير', 'داود'],
+    ['ابتلعني حوت كبير وبقيت في بطنه ثلاثة أيام', 'يونان'],
+    ['أخذت الوصايا العشر من الله على جبل سيناء', 'موسى'],
+    ['ألقوني في جب الأسود فلم تؤذني', 'دانيال'],
+    ['باعني إخوتي، وصرت بعد ذلك مسؤولًا كبيرًا في مصر', 'يوسف'],
+    ['عمّدت السيد المسيح في نهر الأردن', 'يوحنا المعمدان'],
+    ['وُلد منّي السيد المسيح في بيت لحم', 'العذراء مريم']
+  ];
+  const names = B.map(x => x[1]), d = shuffle(B);
+  quiz(5, () => {
+    const q = d.pop();
+    const o = shuffle([q[1], ...shuffle(names.filter(x => x !== q[1])).slice(0, 3)]);
+    return { html: '<div class="clue">«' + q[0] + '»</div><div class="info">مَن أنا؟</div>', options: o.map(x => ({ label: x, ok: x === q[1] })) };
+  }, 3);
+}
+
+function stories() {
+  const B = [
+    ['🚢🌈', 'نوح والفلك'], ['🐋', 'يونان والحوت'], ['🦁', 'دانيال في جب الأسود'],
+    ['⭐👶🐑', 'ميلاد السيد المسيح'], ['🍞🐟', 'إشباع الجموع بالخبز والسمك'], ['🌊🏃', 'عبور البحر الأحمر'],
+    ['🎵🐑', 'داود الراعي'], ['🔥👦👦👦', 'الثلاثة فتية في أتون النار'], ['🌳🍎', 'آدم وحواء في الجنة']
+  ];
+  const names = B.map(x => x[1]), d = shuffle(B);
+  quiz(6, () => {
+    const q = d.pop();
+    const o = shuffle([q[1], ...shuffle(names.filter(x => x !== q[1])).slice(0, 3)]);
+    return { html: '<div class="huge">' + q[0] + '</div><div class="info">أي قصة من الكتاب المقدس هذه؟</div>', cols: 'g1', options: o.map(x => ({ label: x, ok: x === q[1] })) };
+  }, 4);
+}
+
+function verse() {
+  const V = [
+    { t: 'الرَّبُّ رَاعِيَّ فَلاَ يُعْوِزُنِي ___', ref: 'مزمور 23: 1', a: 'شَيْءٌ', w: ['خَوْفٌ', 'حُزْنٌ', 'جُوعٌ'] },
+    { t: 'الرَّبُّ ___ وَخَلاَصِي، مِمَّنْ أَخَافُ؟', ref: 'مزمور 27: 1', a: 'نُورِي', w: ['صَدِيقِي', 'حَارِسِي', 'مُعَلِّمِي'] },
+    { t: 'هكَذَا أَحَبَّ اللهُ الْعَالَمَ حَتَّى بَذَلَ ابْنَهُ ___', ref: 'يوحنا 3: 16', a: 'الْوَحِيدَ', w: ['الْكَبِيرَ', 'الصَّغِيرَ', 'الْقَوِيَّ'] },
+    { t: 'أَكْرِمْ أَبَاكَ وَ___', ref: 'خروج 20: 12', a: 'أُمَّكَ', w: ['أَخَاكَ', 'جَارَكَ', 'مُعَلِّمَكَ'] },
+    { t: 'أَسْتَطِيعُ كُلَّ شَيْءٍ فِي الْمَسِيحِ الَّذِي ___', ref: 'فيلبي 4: 13', a: 'يُقَوِّينِي', w: ['يُعَلِّمُنِي', 'يَرَانِي', 'يَسْمَعُنِي'] },
+    { t: 'صَلُّوا بِلاَ ___', ref: '١ تسالونيكي 5: 17', a: 'انْقِطَاعٍ', w: ['خَوْفٍ', 'كَسَلٍ', 'صَوْتٍ'] },
+    { t: 'لأَنَّ اللهَ ___', ref: '١ يوحنا 4: 8', a: 'مَحَبَّةٌ', w: ['بَعِيدٌ', 'غَضَبٌ', 'صَمْتٌ'] },
+    { t: 'طُوبَى لِلأَنْقِيَاءِ الْقَلْبِ، لأَنَّهُمْ ___ اللهَ', ref: 'متى 5: 8', a: 'يُعَايِنُونَ', w: ['يَنْسَوْنَ', 'يَخَافُونَ', 'يَتْرُكُونَ'] }
+  ];
+  const d = shuffle(V);
+  quiz(5, () => {
+    const q = d.pop();
+    return { html: '<div class="verse">' + q.t.replace('___', '<span class="blank">＿＿＿</span>') + '<small>' + q.ref + '</small></div><div class="info">اختار الكلمة الناقصة</div>',
+             options: shuffle([q.a, ...q.w]).map(x => ({ label: x, ok: x === q.a })) };
+  }, 3);
+}
+
+function nums() {
+  const B = [
+    ['كم عدد التلاميذ الذين اختارهم السيد المسيح؟', 12],
+    ['كم عدد الوصايا التي أعطاها الله لموسى؟', 10],
+    ['كم يومًا صام السيد المسيح في البرية؟', 40],
+    ['كم يومًا بقي يونان في بطن الحوت؟', 3],
+    ['كم يومًا عمل الله فيها قبل يوم الراحة؟', 6],
+    ['كم عدد الأناجيل في العهد الجديد؟', 4],
+    ['كم عدد أسرار الكنيسة السبعة؟ (اختار الرقم)', 7],
+    ['كم عدد الأقانيم في الثالوث القدوس؟', 3]
+  ];
+  const pool = [2,3,4,5,6,7,8,10,12,30,40,50], d = shuffle(B);
+  quiz(5, () => {
+    const q = d.pop();
+    const s = new Set([q[1], ...shuffle(pool.filter(x => x !== q[1])).slice(0, 3)]);
+    return { html: '<div class="clue">' + q[0] + '</div>', options: [...s].sort((x, y) => x - y).map(v => ({ label: v, ok: v === q[1] })) };
+  }, 3);
+}
+
+const creation = () => seq(['💡 النور', '☁️ السماء', '🌱 اليابسة والنباتات', '🌞 الشمس والقمر والنجوم', '🐟 الأسماك والطيور', '🧑 الحيوانات والإنسان', '😴 يوم الراحة'], 'g1');
+const jonah = () => seq(['الله يطلب من يونان أن يذهب إلى نينوى', 'يونان يهرب في سفينة', 'عاصفة شديدة، ويُلقى يونان في البحر', 'حوت كبير يبتلع يونان ثلاثة أيام', 'يونان يذهب إلى نينوى فيتوب أهلها'], 'g1');
+
+/* ================= 20 لعبة جديدة ================= */
+const pick = (a, n) => shuffle(a).slice(0, n);
+const opts = (ans, pool, n = 3) => shuffle([ans, ...pick([...new Set(pool)].filter(x => x !== ans), n)]).map(x => ({ label: x, ok: x === ans }));
+const ltr = t => '\u202A' + t + '\u202C';
+const qa = (L, n, html, cols, min) => { const d = shuffle(L), all = L.map(x => x[1]); quiz(n, () => { const q = d.pop(); return { html: html(q), cols, options: opts(q[1], all) }; }, min); };
+
+function reaction() {
+  let r = 0, sum = 0, t0 = 0, ready = false;
+  (function round() {
+    ready = false;
+    area.innerHTML = '<div class="info">جولة ' + (r + 1) + ' من 3</div><button class="react wait" id="rb">استنى اللون الأخضر…</button>';
+    const b = $('rb');
+    later(() => { ready = true; t0 = performance.now(); b.className = 'react go'; b.textContent = 'دوس دلوقتي! 👆'; }, 1500 + rand(2500));
+    b.onclick = () => {
+      if (!ready) { clearAll(); b.textContent = 'بدري! جرّب تاني'; shake(b); later(round, 1000); return; }
+      const ms = Math.round(performance.now() - t0); sum += ms; r++; ready = false; b.onclick = null;
+      b.className = 'react done'; b.textContent = ms + ' ملّي ثانية ⚡';
+      if (r === 3) later(() => { area.innerHTML = ''; const avg = Math.round(sum / 3); win('متوسط سرعتك ' + avg + ' ملّي ثانية', avg < 650); }, 900);
+      else later(round, 1100);
+    };
+  })();
+}
+
+function mole() {
+  let s = 0, t = 15, on = -1; const hs = [];
+  area.innerHTML = '<div class="info" id="mi"></div><div class="grid g3 holes" id="mh"></div>';
+  const upd = () => $('mi').textContent = '⏱️ ' + t + '   🔨 ' + s;
+  const draw = () => hs.forEach((h, i) => { h.textContent = i === on ? '🐹' : ''; h.classList.toggle('up', i === on); });
+  for (let i = 0; i < 9; i++) { const h = btn('', () => { if (i === on) { s++; on = -1; draw(); upd(); } else shake(h); }, 'hole'); hs.push(h); $('mh').appendChild(h); }
+  upd(); every(() => { on = rand(9); draw(); }, 750);
+  every(() => { t--; upd(); if (t <= 0) win('ضربت ' + s + ' خلد!', s >= 8); }, 1000);
+}
+
+function simon() {
+  const C = ['#e53935', '#1e88e5', '#43a047', '#fdd835']; const sq = []; let pos = 0, lock = true;
+  area.innerHTML = '<div class="info" id="sm"></div><div class="grid g2" id="sp"></div>';
+  const flash = i => { pads[i].classList.add('lit'); later(() => pads[i].classList.remove('lit'), 350); };
+  const pads = C.map((c, i) => {
+    const p = document.createElement('button'); p.className = 'pad'; p.style.setProperty('--c', c);
+    p.onclick = () => {
+      if (lock) return; flash(i);
+      if (i !== sq[pos]) { lock = true; win('وصلت للمستوى ' + sq.length, sq.length >= 4); return; }
+      if (++pos === sq.length) { if (sq.length === 6) { win('برافو! حفظت ٦ مستويات'); return; } lock = true; later(nextR, 700); }
+    };
+    $('sp').appendChild(p); return p;
+  });
+  function nextR() {
+    sq.push(rand(4)); pos = 0; lock = true; $('sm').textContent = 'راقب الترتيب… (مستوى ' + sq.length + ')';
+    sq.forEach((v, k) => later(() => flash(v), k * 600 + 300));
+    later(() => { lock = false; $('sm').textContent = 'دورك!'; }, sq.length * 600 + 300);
+  }
+  nextR();
+}
+
+function pattern() {
+  quiz(5, () => {
+    const a = rand(8) + 1, d = rand(5) + 2, dbl = Math.random() < .3;
+    const s = [0, 1, 2, 3].map(i => dbl ? a * 2 ** i : a + d * i), A = dbl ? a * 16 : a + d * 4;
+    return { html: '<div class="big" dir="ltr">' + s.join(' ، ') + ' ، ؟</div><div class="info">ما الرقم التالي؟</div>', options: opts(A, [A - 2, A + 2, A - 1, A + 1, A + d]) };
+  }, 3);
+}
+
+function stroop() {
+  const C = [['أحمر', '#e53935'], ['أزرق', '#1e88e5'], ['أخضر', '#43a047'], ['أصفر', '#fdd835'], ['بنفسجي', '#8e24aa'], ['برتقالي', '#fb8c00']];
+  quiz(6, () => {
+    const w = C[rand(6)], ink = pick(C.filter(x => x !== w), 1)[0];
+    return { html: '<div class="info">ما لون الكتابة (مش معناها)؟</div><div class="big" style="color:' + ink[1] + ';text-shadow:0 2px 0 #0004">' + w[0] + '</div>',
+             options: shuffle([ink, ...pick(C.filter(x => x !== ink), 3)]).map(x => ({ label: x[0], ok: x === ink })) };
+  }, 4);
+}
+
+function scramble() {
+  const W = ['مدرسة', 'كتاب', 'شجرة', 'حديقة', 'سيارة', 'مكتبة', 'كنيسة', 'سفينة', 'طائرة', 'مدينة'], d = shuffle(W);
+  quiz(6, () => {
+    const w = d.pop(); let s; do s = shuffle([...w]); while (s.join('') === w);
+    return { html: '<div class="info">رتّب الحروف لتكوّن كلمة</div><div class="big">' + s.join('  ') + '</div>', options: opts(w, W) };
+  }, 4);
+}
+
+function capitals() {
+  qa([['مصر', 'القاهرة'], ['السعودية', 'الرياض'], ['الأردن', 'عمّان'], ['لبنان', 'بيروت'], ['المغرب', 'الرباط'], ['العراق', 'بغداد'], ['السودان', 'الخرطوم'], ['سوريا', 'دمشق'], ['قطر', 'الدوحة'], ['عُمان', 'مسقط'], ['ليبيا', 'طرابلس'], ['الإمارات', 'أبوظبي']],
+     6, q => '<div class="clue">ما عاصمة ' + q[0] + '؟</div>', 'g2', 4);
+}
+
+function count() {
+  const E = ['🍎', '⭐', '🐟', '🎈', '🐥', '🌸', '🚗'];
+  quiz(5, () => { const e = E[rand(7)], n = rand(8) + 2; return { html: '<div class="info">عدّ بسرعة!</div><div class="big count">' + e.repeat(n) + '</div>', options: opts(n, [n - 2, n - 1, n + 1, n + 2, n + 3].filter(x => x > 0)) }; }, 3);
+}
+
+function opposites() {
+  const O = [['كبير', 'صغير'], ['طويل', 'قصير'], ['حار', 'بارد'], ['سريع', 'بطيء'], ['نهار', 'ليل'], ['فرح', 'حزن'], ['قوي', 'ضعيف'], ['قريب', 'بعيد'], ['ثقيل', 'خفيف'], ['جديد', 'قديم']], all = O.flat();
+  const d = shuffle(O);
+  quiz(6, () => { const q = d.pop(), f = Math.random() < .5, w = f ? q[0] : q[1], a = f ? q[1] : q[0];
+    return { html: '<div class="clue">عكس «' + w + '» هو؟</div>', options: opts(a, all.filter(x => x !== w)) }; }, 4);
+}
+
+function compare() {
+  const g = () => { const a = rand(15) + 1, b = rand(15) + 1; return { s: ltr(a + ' + ' + b), v: a + b }; };
+  quiz(6, () => { const x = g(); let y = g(); while (y.v === x.v) y = g();
+    return { html: '<div class="info">أيهما ناتجه أكبر؟</div>', options: [x, y].map(o => ({ label: o.s, ok: o.v === Math.max(x.v, y.v) })) }; }, 4);
+}
+
+/* ===== دينية ===== */
+function miracles() {
+  qa([['🍷💧', 'تحويل الماء إلى خمر في قانا'], ['🍞🐟', 'إشباع الخمسة آلاف'], ['🌊🚶', 'المشي على الماء'], ['👁️✨', 'شفاء المولود أعمى'], ['⚰️🌿', 'إقامة لعازر'], ['🌬️⛵', 'تهدئة العاصفة'], ['🛏️🚶', 'شفاء المفلوج']],
+     5, q => '<div class="huge">' + q[0] + '</div><div class="info">أي معجزة من معجزات السيد المسيح هذه؟</div>', 'g1', 3);
+}
+const lifeChrist = () => seq(['👶 الميلاد في بيت لحم', '🌴 الهروب إلى مصر', '💧 العماد في نهر الأردن', '🍷 أول معجزة في قانا', '✝️ الصلب', '🌅 القيامة', '☁️ الصعود'], 'g1');
+const torah = () => seq(['التكوين', 'الخروج', 'اللاويين', 'العدد', 'التثنية'], 'g1');
+const agpeya = () => seq(['🌅 باكر', '🕘 الثالثة', '🕛 السادسة', '🕒 التاسعة', '🌇 الغروب', '🌙 النوم', '⭐ نصف الليل'], 'g1');
+function saints() {
+  qa([['كتب إنجيلًا وبشّر بالمسيحية في مصر', 'مارمرقس'], ['يُلقّب بأبي الرهبان', 'الأنبا أنطونيوس'], ['يُلقّب بأول السواح', 'الأنبا بولا'], ['دافع عن لاهوت المسيح في مجمع نيقية', 'البابا أثناسيوس'], ['يُلقّب بالعجايبي', 'مار مينا'], ['يُلقّب بأمير الشهداء', 'مارجرجس'], ['يُلقّب برئيس المتوحدين', 'الأنبا شنودة'], ['رئيس الملائكة الذي بشّر العذراء', 'جبرائيل']],
+     6, q => '<div class="clue">«' + q[0] + '»</div><div class="info">من هو؟</div>', 'g2', 4);
+}
+function sacraments() {
+  const S = ['المعمودية', 'الميرون', 'التناول', 'الاعتراف', 'مسحة المرضى', 'الزيجة', 'الكهنوت'], X = ['الصوم', 'الأجبية', 'الأيقونة', 'الميطانيات', 'البخور', 'الشموع'];
+  quiz(5, () => { const a = S[rand(7)]; return { html: '<div class="info">أي هذه من أسرار الكنيسة السبعة؟</div><div class="huge">🕊️</div>', options: shuffle([a, ...pick(X, 3)]).map(x => ({ label: x, ok: x === a })) }; }, 3);
+}
+function places() {
+  qa([['وُلد السيد المسيح', 'بيت لحم'], ['أخذ موسى الوصايا', 'جبل سيناء'], ['عمّد يوحنا السيد المسيح', 'نهر الأردن'], ['نشأ السيد المسيح', 'الناصرة'], ['هربت العائلة المقدسة', 'مصر'], ['صُلب السيد المسيح', 'الجلجثة'], ['عبر بنو إسرائيل', 'البحر الأحمر']],
+     6, q => '<div class="clue">أين: ' + q[0] + '؟</div>', 'g2', 4);
+}
+function truefalse() {
+  const T = [['نوح بنى الفلك', 1], ['يونان ذهب إلى نينوى من أول مرة', 0], ['داود هزم جليات', 1], ['وُلد السيد المسيح في القاهرة', 0], ['عدد تلاميذ المسيح اثنا عشر', 1], ['عدد الأناجيل خمسة', 0], ['موسى عبر بشعبه البحر الأحمر', 1], ['سليمان بنى الهيكل', 1], ['يوسف الصديق باعه إخوته', 1], ['الله خلق العالم في يوم واحد', 0]], d = shuffle(T);
+  quiz(6, () => { const q = d.pop(); return { html: '<div class="clue">' + q[0] + '</div>', options: [{ label: '✅ صح', ok: !!q[1] }, { label: '❌ غلط', ok: !q[1] }] }; }, 4);
+}
+function spirit() {
+  const F = ['محبة', 'فرح', 'سلام', 'طول أناة', 'لطف', 'صلاح', 'إيمان', 'وداعة', 'تعفف'], X = ['كبرياء', 'غضب', 'حسد', 'كسل', 'أنانية', 'كذب'];
+  quiz(5, () => { const a = F[rand(9)]; return { html: '<div class="info">أي هذه من ثمر الروح؟</div><div class="huge">🍇</div>', options: shuffle([a, ...pick(X, 3)]).map(x => ({ label: x, ok: x === a })) }; }, 3);
+}
+function feasts() {
+  const Q = [['أي عيد نحتفل به يوم ٧ يناير؟', 'ميلاد المسيح', ['القيامة', 'الغطاس', 'العنصرة']], ['الصوم الذي يسبق عيد القيامة؟', 'الصوم الكبير', ['صوم الرسل', 'صوم العذراء', 'صوم يونان']], ['كم يومًا بين القيامة والصعود؟', '٤٠ يومًا', ['١٠ أيام', '٧ أيام', '٣ أيام']], ['عيد العنصرة نتذكّر فيه حلول؟', 'الروح القدس', ['المنّ', 'الطوفان', 'الوصايا']], ['عيد الغطاس نتذكّر فيه عماد المسيح في؟', 'نهر الأردن', ['النيل', 'بحر الجليل', 'نهر الفرات']], ['أحد الشعانين: دخول المسيح إلى؟', 'أورشليم', ['بيت لحم', 'مصر', 'الناصرة']]], d = shuffle(Q);
+  quiz(5, () => { const q = d.pop(); return { html: '<div class="clue">' + q[0] + '</div>', options: shuffle([q[1], ...q[2]]).map(x => ({ label: x, ok: x === q[1] })) }; }, 3);
+}
+
+/* ================= القائمة ================= */
+const GAMES = [
+  { cat: 'fun', n: 'لعبة الذاكرة', e: '🧠', c: '#7c4dff', f: memoryFun },
+  { cat: 'fun', n: 'احسب وكسب', e: '➕', c: '#00b894', f: math },
+  { cat: 'fun', n: 'خمّن الرقم', e: '🔢', c: '#f39c12', f: guess },
+  { cat: 'fun', n: 'حجر ورقة مقص', e: '✊', c: '#e17055', f: rps },
+  { cat: 'fun', n: 'صيد النجوم', e: '⭐', c: '#f5b800', f: stars },
+  { cat: 'fun', n: 'أي لون هذا؟', e: '🎨', c: '#e84393', f: colors },
+  { cat: 'fun', n: 'رتّب الأرقام', e: '🔟', c: '#0984e3', f: order },
+  { cat: 'fun', n: 'أي حيوان هذا؟', e: '🦁', c: '#00a8a8', f: animals },
+  { cat: 'fun', n: 'إكس أو', e: '❌', c: '#6c5ce7', f: ttt },
+  { cat: 'fun', n: 'اعثر على المختلف', e: '🔍', c: '#d63031', f: odd },
+  { cat: 'faith', n: 'مَن أنا؟', e: '🧑‍🦳', c: '#5c6bc0', f: whoami },
+  { cat: 'faith', n: 'أي قصة هذه؟', e: '📖', c: '#26a69a', f: stories },
+  { cat: 'faith', n: 'أكمل الآية', e: '✝️', c: '#ab47bc', f: verse },
+  { cat: 'faith', n: 'أرقام في الكتاب', e: '🔢', c: '#ef6c00', f: nums },
+  { cat: 'faith', n: 'أيام الخلق', e: '🌍', c: '#f0b400', f: creation },
+  { cat: 'faith', n: 'قصة يونان', e: '🐋', c: '#1e88e5', f: jonah },
+  { cat: 'faith', n: 'ذاكرة الكنيسة', e: '⛪', c: '#8d6e63', f: memoryChurch },
+  { cat: 'fun', n: 'سرعة رد الفعل', e: '⚡', c: '#f5b800', f: reaction },
+  { cat: 'fun', n: 'اضرب الخلد', e: '🐹', c: '#8d6e63', f: mole },
+  { cat: 'fun', n: 'ذاكرة الألوان', e: '🎵', c: '#e84393', f: simon },
+  { cat: 'brain', n: 'كمّل النمط', e: '🧩', c: '#7c4dff', f: pattern },
+  { cat: 'brain', n: 'لون الكتابة', e: '🌈', c: '#e17055', f: stroop },
+  { cat: 'brain', n: 'حروف مبعثرة', e: '🔤', c: '#00a8a8', f: scramble },
+  { cat: 'brain', n: 'عواصم عربية', e: '🗺️', c: '#0984e3', f: capitals },
+  { cat: 'brain', n: 'عدّ بسرعة', e: '🍎', c: '#d63031', f: count },
+  { cat: 'brain', n: 'الأضداد', e: '↔️', c: '#00b894', f: opposites },
+  { cat: 'brain', n: 'الأكبر ناتجًا', e: '⚖️', c: '#f39c12', f: compare },
+  { cat: 'faith', n: 'معجزات السيد المسيح', e: '🍞', c: '#26a69a', f: miracles },
+  { cat: 'faith', n: 'حياة السيد المسيح', e: '✝️', c: '#ab47bc', f: lifeChrist },
+  { cat: 'faith', n: 'أسفار موسى الخمسة', e: '📜', c: '#ef6c00', f: torah },
+  { cat: 'faith', n: 'صلوات الأجبية', e: '🕯️', c: '#5c6bc0', f: agpeya },
+  { cat: 'faith', n: 'مَن هو القديس؟', e: '😇', c: '#f0b400', f: saints },
+  { cat: 'faith', n: 'أسرار الكنيسة', e: '🕊️', c: '#1e88e5', f: sacraments },
+  { cat: 'faith', n: 'أين حدث؟', e: '📍', c: '#8d6e63', f: places },
+  { cat: 'faith', n: 'صح أم غلط؟', e: '✅', c: '#2ecc71', f: truefalse },
+  { cat: 'faith', n: 'ثمر الروح', e: '🍇', c: '#8e24aa', f: spirit },
+  { cat: 'faith', n: 'الأعياد والصوم', e: '🎉', c: '#c4453a', f: feasts }
+];
+
+function start(i) {
+  clearAll(); cur = i;
+  $('home').style.display = 'none';
+  const g = $('game'); g.style.display = 'block'; g.classList.remove('view'); void g.offsetWidth; g.classList.add('view');
+  $('title').textContent = GAMES[i].e + ' ' + GAMES[i].n;
+  area.innerHTML = '';
+  window.scrollTo({ top: 0 });
+  GAMES[i].f();
+}
+function home() {
+  clearAll(); $('game').style.display = 'none';
+  const h = $('home'); h.style.display = 'block'; h.classList.remove('view'); void h.offsetWidth; h.classList.add('view');
+}
+$('back').onclick = home;
+
+$('home').insertAdjacentHTML('afterbegin', '<section class="hero"><small>نور الحياة</small><h1>ساحة الألعاب</h1><p>العب وتعلّم وجمّع نجومك ✨</p><div class="chips"><span>🎮 ' + GAMES.length + ' لعبة</span><span>⭐ ' + total + ' نجمة</span></div><button class="again" onclick="start(rand(GAMES.length))">🎲 لعبة عشوائية</button></section>');
+[['fun', '🎮 ألعاب ممتعة'], ['brain', '🧠 ألعاب ذكاء وسرعة'], ['faith', '✝️ ألعاب دينية']].forEach(([cat, title]) => {
+  const h = document.createElement('div'); h.className = 'sec'; h.textContent = title; $('home').appendChild(h);
+  const g = document.createElement('div'); g.className = 'grid'; $('home').appendChild(g);
+  GAMES.forEach((game, i) => {
+    if (game.cat !== cat) return;
+    const t = document.createElement('button'); t.className = 'tile';
+    t.style.setProperty('--c', game.c); t.style.animationDelay = (i * 40) + 'ms';
+    t.innerHTML = '<span class="ic">' + game.e + '</span>' + game.n;
+    t.onclick = () => start(i);
+    g.appendChild(t);
+  });
+});
+</script>
+</body>
+</html>

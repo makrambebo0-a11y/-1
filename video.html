@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>فيديوهات</title>
+<style>
+  :root { --navy:#141f73; --blue:#3447a0; --orange:#f08030;
+    --bg:#f4f6ff; --card:#fff; --text:#1d2140; --muted:#6b7090; --line:#e3e6f5;
+    --shadow:0 8px 24px -10px rgba(30,40,110,.25); --ease:cubic-bezier(.2,.8,.2,1); }
+  @media (prefers-color-scheme: dark) { :root { --bg:#10121c; --card:#1b1e2e; --text:#eceefb; --muted:#9aa0c4; --line:#2b2f47; --shadow:0 8px 24px -10px rgba(0,0,0,.6); } }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:"Tajawal","Cairo","Segoe UI",Tahoma,sans-serif; }
+  button, input { font-family:inherit; color:inherit; }
+  header { position:sticky; top:0; z-index:20; background:linear-gradient(135deg,var(--navy),var(--blue)); color:#fff; text-align:center;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 60px 14px; font-size:22px; font-weight:800; box-shadow:0 6px 20px -8px rgba(20,31,115,.7); }
+  header a { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#fff; text-decoration:none; font-size:30px; line-height:1; padding:4px 10px; border-radius:12px; }
+  .wrap { max-width:860px; margin:0 auto; padding:16px 14px 50px; }
+  .view { animation:viewIn .4s var(--ease); }
+  @keyframes viewIn { from { opacity:0; transform:translateY(12px); } }
+
+  #q { width:100%; height:52px; padding:0 16px; font-size:17px; background:var(--card); border:2px solid var(--blue); border-radius:16px; outline:none; box-shadow:var(--shadow); }
+  #q:focus { border-color:var(--orange); }
+  .chips { display:flex; gap:8px; overflow-x:auto; padding:14px 2px 6px; scrollbar-width:none; }
+  .chips::-webkit-scrollbar { display:none; }
+  .chip { flex:0 0 auto; padding:9px 16px; border-radius:999px; border:2px solid var(--line); background:var(--card); font-size:15px; font-weight:800; cursor:pointer; white-space:nowrap; transition:all .2s var(--ease); }
+  .chip.on { background:linear-gradient(135deg,var(--orange),#ff9f55); color:#fff; border-color:transparent; box-shadow:0 8px 16px -8px var(--orange); transform:translateY(-2px); }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; margin-top:12px; }
+  .vc { background:var(--card); border:2px solid var(--line); border-radius:20px; overflow:hidden; cursor:pointer; box-shadow:var(--shadow); text-align:right; padding:0; display:block; width:100%;
+    transition:transform .2s var(--ease), border-color .2s; animation:viewIn .4s var(--ease) both; }
+  @media (hover:hover) { .vc:hover { transform:translateY(-4px); border-color:var(--orange); } }
+  .vc:active { transform:scale(.97); }
+  .th { position:relative; aspect-ratio:16/9; background:linear-gradient(135deg,#1b2a8f,#5a3fa0); display:grid; place-items:center; font-size:44px; overflow:hidden; }
+  .th img, .th video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; pointer-events:none; }
+  .th .pl { position:relative; width:54px; height:54px; border-radius:50%; background:#000a; color:#fff; display:grid; place-items:center; font-size:22px; padding-right:3px; backdrop-filter:blur(4px); transition:transform .2s var(--ease); }
+  .vc:hover .pl { transform:scale(1.12); }
+  .vi { padding:12px 14px 14px; }
+  .vi b { display:block; font-size:16px; line-height:1.6; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .vi small { color:var(--muted); font-size:13px; font-weight:700; }
+  .empty { text-align:center; color:var(--muted); padding:40px 10px; font-size:18px; line-height:1.9; }
+
+  #pv { display:none; }
+  .backbtn { background:var(--card); border:2px solid var(--line); border-radius:14px; padding:10px 16px; font-size:15px; font-weight:800; cursor:pointer; box-shadow:var(--shadow); transition:transform .15s; margin-bottom:12px; }
+  .backbtn:active { transform:scale(.94); }
+  #vbox { position:relative; aspect-ratio:16/9; background:#000; border-radius:22px; overflow:hidden; box-shadow:0 18px 36px -16px rgba(0,0,0,.6); }
+  #vbox iframe, #vbox video { position:absolute; inset:0; width:100%; height:100%; border:0; background:#000; }
+  .verr { position:absolute; inset:0; display:grid; place-items:center; color:#fff; font-weight:800; text-align:center; padding:20px; }
+  #vt { font-size:22px; font-weight:800; margin:16px 4px 4px; line-height:1.6; }
+  #vc { color:var(--muted); font-weight:700; margin:0 4px; }
+  #vlink { display:inline-block; margin:10px 4px 0; padding:8px 14px; border-radius:12px; background:var(--card); border:2px solid var(--line); color:var(--text); text-decoration:none; font-weight:800; font-size:15px; }
+  .verr a { color:#ffb36b; }
+  .nav { display:flex; gap:10px; margin-top:16px; }
+  .nav button { flex:1; padding:14px; font-size:17px; font-weight:800; border-radius:14px; border:2px solid var(--line); background:var(--card); cursor:pointer; box-shadow:var(--shadow); transition:transform .15s; }
+  .nav button:active { transform:scale(.95); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header>🎬 فيديوهات<a href="index.html" title="رجوع">›</a></header>
+<div class="wrap">
+  <div id="lv">
+    <input type="search" id="q" placeholder="🔍 ابحث عن فيديو">
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div id="pv">
+    <button class="backbtn" id="back">رجوع للقائمة ›</button>
+    <div id="vbox"></div>
+    <div id="vt"></div>
+    <div id="vc"></div>
+    <a id="vlink" target="_blank" rel="noopener" style="display:none"></a>
+    <div class="nav"><button id="prev">‹ السابق</button><button id="next">التالي ›</button></div>
+  </div>
+</div>
+
+<script src="videos-list.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const V = typeof VIDEOS !== 'undefined' ? VIDEOS : [];
+const cats = [...new Set(V.map(v => v.cat))];
+const norm = s => s.replace(/[\u064B-\u0652\u0670\u0640]/g, '').replace(/[إأآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').toLowerCase();
+const fileUrl = v => 'videos/' + v.src.split('/').map(encodeURIComponent).join('/');
+let catSel = 'الكل', cur = -1;
+
+function visible() {
+  const q = norm($('q').value.trim());
+  return V.map((v, i) => i).filter(i => (catSel === 'الكل' || V[i].cat === catSel) && (!q || norm(V[i].title).includes(q)));
+}
+function renderChips() {
+  const c = $('chips'); c.innerHTML = '';
+  if (cats.length < 2) return;
+  ['الكل', ...cats].forEach(n => {
+    const b = document.createElement('button'); b.className = 'chip' + (n === catSel ? ' on' : ''); b.textContent = n;
+    b.onclick = () => { catSel = n; renderChips(); renderGrid(); }; c.appendChild(b);
+  });
+}
+function renderGrid() {
+  const g = $('grid'); g.innerHTML = '';
+  if (typeof VIDEOS === 'undefined') { g.style.display = 'block'; g.innerHTML = '<div class="empty">ملف videos-list.js مش موجود جنب الصفحة.<br>شغّل python build1.py وارفعه مع الصفحة.</div>'; return; }
+  if (!V.length) { g.style.display = 'block'; g.innerHTML = '<div class="empty">لا توجد فيديوهات حالياً.</div>'; return; }
+  const vis = visible();
+  if (!vis.length) { g.style.display = 'block'; g.innerHTML = '<div class="empty">مفيش فيديو بالاسم ده.</div>'; return; }
+  g.style.display = '';
+  vis.forEach((i, k) => {
+    const v = V[i], b = document.createElement('button'); b.className = 'vc'; b.style.animationDelay = Math.min(k, 12) * 35 + 'ms';
+    const th = document.createElement('div'); th.className = 'th';
+    if (v.type === 'youtube') { const im = document.createElement('img'); im.loading = 'lazy'; im.alt = ''; im.src = 'https://i.ytimg.com/vi/' + v.id + '/hqdefault.jpg'; im.onerror = () => im.remove(); th.appendChild(im); }
+    else { const vd = document.createElement('video'); vd.preload = 'metadata'; vd.muted = true; vd.playsInline = true; vd.src = fileUrl(v) + '#t=0.6'; th.appendChild(vd); }
+    const pl = document.createElement('span'); pl.className = 'pl'; pl.textContent = '▶'; th.appendChild(pl);
+    const info = document.createElement('div'); info.className = 'vi'; const t = document.createElement('b'); t.textContent = v.title; const s = document.createElement('small'); s.textContent = v.cat;
+    info.append(t, s); b.append(th, info); b.onclick = () => openVideo(i); g.appendChild(b);
+  });
+}
+
+function show(v) {
+  const L = $('lv'), P = $('pv'), el = v === 'player' ? P : L;
+  L.style.display = v === 'list' ? 'block' : 'none'; P.style.display = v === 'player' ? 'block' : 'none';
+  el.classList.remove('view'); void el.offsetWidth; el.classList.add('view'); window.scrollTo({ top: 0 });
+}
+function openVideo(i) {
+  cur = i; const v = V[i], box = $('vbox'); box.innerHTML = '';
+  show('player'); $('vt').textContent = v.title; $('vc').textContent = v.cat;
+  const lk = $('vlink');
+  if (v.type === 'youtube') {
+    const yt = 'https://www.youtube.com/watch?v=' + v.id;
+    lk.href = yt; lk.textContent = '↗ افتح في يوتيوب'; lk.style.display = '';
+    if (location.protocol === 'file:') {
+      box.innerHTML = '<div class="verr"><div>يوتيوب مابيشتغلش لما الصفحة تتفتح من ملف على الجهاز.<br>بعد ما ترفعها على الموقع هيشتغل عادي.<br><br><a href="' + yt + '" target="_blank" rel="noopener">↗ افتح الفيديو في يوتيوب دلوقتي</a></div></div>';
+      return;
+    }
+    const f = document.createElement('iframe');
+    f.src = 'https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&rel=0&playsinline=1';
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.referrerPolicy = 'strict-origin-when-cross-origin'; f.allowFullscreen = true; f.title = v.title; box.appendChild(f);
+  } else {
+    lk.style.display = 'none';
+    const el = document.createElement('video'); el.controls = true; el.autoplay = true; el.playsInline = true; el.src = fileUrl(v);
+    el.onended = () => step(1);
+    el.onerror = () => { box.insertAdjacentHTML('beforeend', '<div class="verr">تعذر تشغيل الفيديو.<br>تأكد إن الملف موجود وصيغته mp4 (H.264).</div>'); };
+    box.appendChild(el);
+  }
+}
+function step(d) { const vis = visible(); if (!vis.length) return; const k = vis.indexOf(cur); openVideo(vis[(k + d + vis.length) % vis.length]); }
+function closeVideo() { $('vbox').innerHTML = ''; show('list'); }
+$('back').onclick = closeVideo;
+$('prev').onclick = () => step(-1);
+$('next').onclick = () => step(1);
+$('q').oninput = renderGrid;
+renderChips(); renderGrid();
+</script>
+</body>
+</html>

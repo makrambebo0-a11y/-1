@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>القطمارس اليومي | نور الحياة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --navy: #0b1463;
+        --orange: #b94a10;
+        --bg: #fcfcfc;
+        --card-bg: #ffffff;
+        --text: #1a1a1a;
+        --muted: #666;
+        --border: #eee;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* الشريط العلوي (نفس تصميم موقعك) */
+    header {
+        background-color: var(--navy); color: white; padding: 15px 30px;
+        display: flex; justify-content: space-between; align-items: center;
+        font-weight: 600; font-size: 1.2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header-left { display: flex; align-items: center; gap: 10px; text-decoration: none; color: white; }
+    .header-left svg { width: 20px; height: 20px; fill: white; }
+
+    /* المحتوى الرئيسي */
+    main { flex: 1; max-width: 800px; margin: 40px auto; width: 100%; padding: 0 20px; display: flex; flex-direction: column; align-items: center; }
+
+    /* منطقة التحكم */
+    .controls-area { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-bottom: 40px; width: 100%; }
+    
+    input[type="date"] {
+        background: white; border: 2px solid var(--navy); border-radius: 8px; padding: 10px 20px;
+        font-size: 1rem; font-weight: 600; color: var(--navy); outline: none; cursor: pointer; min-width: 200px; text-align: center;
+    }
+
+    .btn-orange {
+        background: white; border: 2px solid var(--orange); border-radius: 8px; padding: 10px 30px;
+        font-size: 1rem; font-weight: 700; color: var(--navy); cursor: pointer; transition: all 0.3s ease; min-width: 150px;
+    }
+    .btn-orange:hover { background: var(--orange); color: white; }
+
+    /* منطقة عرض النتائج */
+    #readings-container { width: 100%; text-align: center; font-size: 1.1rem; color: var(--text); line-height: 1.8; }
+    .placeholder-text { color: var(--muted); font-size: 1.2rem; font-weight: 600; margin-top: 50px; }
+
+    /* كارت القراءة */
+    .reading-card {
+        background: var(--card-bg); border-radius: 12px; padding: 25px; margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-right: 4px solid var(--navy);
+        text-align: right; animation: fadeIn 0.5s ease;
+    }
+    .reading-card h3 {
+        color: var(--navy); margin-bottom: 15px; font-size: 1.3rem;
+        border-bottom: 1px solid var(--border); padding-bottom: 10px;
+    }
+    .reading-card p { color: var(--text); font-size: 1.1rem; line-height: 1.8; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* الفوتر */
+    footer { text-align: center; padding: 20px; color: var(--muted); font-size: 0.9rem; margin-top: auto; }
+</style>
+<script src="settings.js"></script>
+</head>
+<body>
+
+    <!-- الهيدر (نفس تصميم موقعك) -->
+    <header>
+        <div>القطمارس اليومي</div>
+        <a href="index.html" class="header-left">
+            <span>الرئيسية</span>
+            <svg viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+        </a>
+    </header>
+
+    <!-- المحتوى -->
+    <main>
+        <div class="controls-area">
+            <input type="date" id="date-picker">
+            <button id="fetch-btn" class="btn-orange">تحديث القراءات</button>
+        </div>
+
+        <div id="readings-container">
+            <div class="placeholder-text">جارٍ تحميل القراءات أوتوماتيك...</div>
+        </div>
+    </main>
+
+    <footer>© 2026 نور الحياة — جميع الحقوق محفوظة</footer>
+
+    <script>
+        const API_BASE_URL = 'https://api.katameros.app/readings/gregorian';
+        const LANGUAGE_ID = 3; // 3 = العربية (ترجمة فان دايك)
+
+        const datePicker = document.getElementById('date-picker');
+        const fetchBtn = document.getElementById('fetch-btn');
+        const readingsContainer = document.getElementById('readings-container');
+
+        // تنسيق التاريخ ليكون DD-MM-YYYY
+        function formatDateToDDMMYYYY(dateString) {
+            if (!dateString) return null;
+            const [year, month, day] = dateString.split('-');
+            return `${day}-${month}-${year}`;
+        }
+
+        // تعيين تاريخ اليوم كقيمة افتراضية
+        function setDefaultDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            datePicker.value = `${year}-${month}-${day}`;
+        }
+
+        // دالة عرض القراءات
+        function displayReadings(readings) {
+            readingsContainer.innerHTML = '';
+
+            if (!readings || readings.length === 0) {
+                readingsContainer.innerHTML = '<div class="placeholder-text">لا توجد قراءات متاحة لهذا اليوم.</div>';
+                return;
+            }
+
+            readings.forEach(reading => {
+                const card = document.createElement('div');
+                card.className = 'reading-card';
+
+                const title = document.createElement('h3');
+                title.textContent = reading.title || reading.name || 'قراءة';
+                card.appendChild(title);
+
+                const text = document.createElement('p');
+                text.textContent = reading.text || reading.content || reading.verses || 'لا يوجد نص.';
+                card.appendChild(text);
+
+                readingsContainer.appendChild(card);
+            });
+        }
+
+        // دالة جلب القراءات من السيرفر
+        async function fetchReadings() {
+            const selectedDate = datePicker.value;
+            if (!selectedDate) return;
+
+            const formattedDate = formatDateToDDMMYYYY(selectedDate);
+            const url = `${API_BASE_URL}/${formattedDate}?languageId=${LANGUAGE_ID}`;
+
+            readingsContainer.innerHTML = '<div class="placeholder-text">جارٍ تحميل القراءات...</div>';
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`فشل الطلب: ${response.status}`);
+                
+                const data = await response.json();
+                
+                let readingsArray = [];
+                if (Array.isArray(data)) readingsArray = data;
+                else if (data.readings && Array.isArray(data.readings)) readingsArray = data.readings;
+                else if (data.data && Array.isArray(data.data)) readingsArray = data.data;
+
+                displayReadings(readingsArray);
+
+            } catch (error) {
+                console.error('خطأ:', error);
+                readingsContainer.innerHTML = `<div class="placeholder-text" style="color: var(--orange);">حدث خطأ أثناء التحميل. (تأكد من اتصالك بالإنترنت)</div>`;
+            }
+        }
+
+        // ربط الأحداث
+        fetchBtn.addEventListener('click', fetchReadings);
+        
+        // التهيئة عند تحميل الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            setDefaultDate();
+            fetchReadings(); // <--- هنا السر: بيجيب قراءات النهاردة أوتوماتيك أول ما تفتح
+        });
+
+    </script>
+</body>
+</html>
